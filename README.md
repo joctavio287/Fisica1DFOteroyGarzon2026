@@ -9,11 +9,24 @@ En este repositorio hay material complementario para los **problemas 6 y 7 de la
 Ninguna de las dos cosas reemplaza la resolución analítica de la guía: son para *ver* qué
 hace el sistema y para tener una forma independiente de chequear los resultados.
 
+**Links rápidos:**
+
+- Animación online: <https://joctavio287.github.io/Fisica1DFOteroyGarzon2026/problemas_67.html>
+- Repositorio (código fuente y descarga): <https://github.com/joctavio287/Fisica1DFOteroyGarzon2026>
+- Notebook de Colab: [método de Euler](https://colab.research.google.com/drive/1biXkntN14Zl5Me_uEdYg4BMtR0pWWV00#scrollTo=DIYD7bdbPrwl)
+
 ---
 
 ## 1. La animación: `problemas_67.html`
 
-**Archivo:** [problemas_67.html](problemas_67.html)
+**▶ Abrir la animación directamente en el navegador:**
+<https://joctavio287.github.io/Fisica1DFOteroyGarzon2026/problemas_67.html>
+
+Con ese link no hace falta descargar ni instalar nada: se abre como cualquier página web,
+también desde el celular. Más abajo está explicado qué es ese archivo y cómo abrirlo en la
+propia computadora, para quien prefiera tenerlo guardado.
+
+**Archivo en el repositorio:** [problemas_67.html](problemas_67.html)
 
 Muestra dos simulaciones, una abajo de la otra:
 
@@ -107,7 +120,8 @@ velocidad en un instante t, y con un paso de tiempo Δt chico, se puede aproxima
 θ(t + Δt) ≈ θ(t) + d (θ(t))/dt · Δt
 ```
 
-donde θ̈ sale de la ecuación de movimiento (o sea, de la dinámica del problema). Repitiendo
+y lo mismo para la velocidad angular, cuya derivada θ̈ sale de la ecuación de movimiento (o
+sea, de la dinámica del problema). Repitiendo
 este paso miles de veces se construye la trayectoria completa punto por punto. Es,
 literalmente, "avanzar de a pasitos chiquitos suponiendo que en cada pasito la velocidad no
 cambia".
