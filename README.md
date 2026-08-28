@@ -104,8 +104,7 @@ La idea del **método de Euler** es la más simple posible: conociendo la posici
 velocidad en un instante t, y con un paso de tiempo Δt chico, se puede aproximar
 
 ```
-θ(t + Δt) ≈ θ(t) + θ̇(t) · Δt
-θ̇(t + Δt) ≈ θ̇(t) + θ̈(t) · Δt
+θ(t + Δt) ≈ θ(t) + d (θ(t))/dt · Δt
 ```
 
 donde θ̈ sale de la ecuación de movimiento (o sea, de la dinámica del problema). Repitiendo
