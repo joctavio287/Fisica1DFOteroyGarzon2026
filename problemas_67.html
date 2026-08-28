@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Riel semicircular y péndulo con varilla — Física 1, Guía 2, Problemas 6 y 7</title>
+<style>
+  :root{
+    --bg: #0f1420;
+    --panel: #161d2e;
+    --accent: #5ec8f8;
+    --accent2: #ff8a5c;
+    --text: #e8edf5;
+    --muted: #8b96ab;
+    --grid: #26304a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    padding: 24px;
+  }
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+  .subtitle code {
+    background: #1e2740;
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: var(--panel);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid #232d47;
+  }
+  .panel h2 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 10px 0;
+    color: var(--accent);
+  }
+  canvas {
+    width: 100%;
+    display: block;
+    background: #0c1120;
+    border-radius: 8px;
+  }
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 16px;
+    margin-top: 14px;
+  }
+  .ctrl {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .ctrl label {
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+  }
+  .ctrl label span.val {
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  input[type=range] {
+    width: 100%;
+    accent-color: var(--accent);
+  }
+  .buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  button {
+    flex: 1;
+    background: #1e2740;
+    color: var(--text);
+    border: 1px solid #2c3958;
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  button:hover { background: #263252; }
+  button.primary {
+    background: var(--accent);
+    color: #0c1120;
+    font-weight: 600;
+    border: none;
+  }
+  button.primary:hover { background: #7dd5ff; }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .stat {
+    background: #0c1120;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+  }
+  .stat .num {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent2);
+    font-variant-numeric: tabular-nums;
+  }
+  .stat .lbl {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .legend {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+</style>
+</head>
+<body>
+
+<h1>Bolita engarzada en riel semicircular sin fricción</h1>
+<div class="subtitle">
+  Guía 2, Problema 6(c) — Física 1. Ecuación de movimiento (conservación de energía):
+  <code>θ̇² = (2g/R)(1 − cos θ)</code>, con θ(0) = 0.01 rad, θ̇(0) = 0.
+</div>
+
+<div class="layout">
+
+  <div class="panel">
+    <h2>Animación en el riel</h2>
+    <canvas id="scene" width="560" height="420"></canvas>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--accent2)"></span> Bolita</span>
+      <span><span class="dot" style="background:#3d4a6b"></span> Riel semicircular</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>θ(t) — solución numérica (Euler)</h2>
+    <canvas id="plot" width="560" height="420"></canvas>
+  </div>
+
+</div>
+
+<div class="layout" style="margin-top:20px; grid-template-columns: 1fr;">
+  <div class="panel">
+    <h2>Parámetros</h2>
+    <div class="controls">
+      <div class="ctrl">
+        <label>R (radio) <span class="val" id="Rval">1.00 m</span></label>
+        <input type="range" id="R" min="0.1" max="2" step="0.01" value="1.0">
+      </div>
+      <div class="ctrl">
+        <label>g (gravedad) <span class="val" id="gval">9.80 m/s²</span></label>
+        <input type="range" id="g" min="1" max="20" step="0.1" value="9.8">
+      </div>
+    </div>
+    <div class="buttons">
+      <button class="primary" id="playBtn">▶ Reproducir</button>
+      <button id="resetBtn">⟲ Reiniciar</button>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num" id="stat-t">0.000 s</div><div class="lbl">tiempo</div></div>
+      <div class="stat"><div class="num" id="stat-theta">0.6°</div><div class="lbl">θ actual</div></div>
+      <div class="stat"><div class="num" id="stat-tsuelo">—</div><div class="lbl">t hasta θ=π/2 (llegada al suelo)</div></div>
+    </div>
+  </div>
+</div>
+
+<hr style="border:none; border-top:1px solid #232d47; max-width:1180px; margin:36px auto;">
+
+<h1>Partícula en varilla rígida — Problema 7</h1>
+<div class="subtitle">
+  Guía 2, Problema 7(d) — Física 1. Conservación de energía:
+  <code>|θ̇| = √( v₀²/L² + (2g/L)(cos θ − 1) )</code>, con θ(0) = 0, θ̇(0) = v₀/L.
+  La rama + (subiendo) y la rama − (bajando) se concatenan invirtiendo el signo en cada
+  punto de retorno.
+</div>
+
+<div class="layout">
+
+  <div class="panel">
+    <h2>Animación de la varilla</h2>
+    <canvas id="scene7" width="560" height="420"></canvas>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--accent2)"></span> Masa m</span>
+      <span><span class="dot" style="background:#3d4a6b"></span> Varilla rígida</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>θ(t) — solución numérica (Euler)</h2>
+    <canvas id="plot7" width="560" height="420"></canvas>
+  </div>
+
+</div>
+
+<div class="layout" style="margin-top:20px; grid-template-columns: 1fr;">
+  <div class="panel">
+    <h2>Parámetros</h2>
+    <div class="controls">
+      <div class="ctrl">
+        <label>L (longitud) <span class="val" id="Lval">1.00 m</span></label>
+        <input type="range" id="L7" min="0.1" max="2" step="0.01" value="1.0">
+      </div>
+      <div class="ctrl">
+        <label>g (gravedad) <span class="val" id="g7val">9.80 m/s²</span></label>
+        <input type="range" id="g7" min="1" max="20" step="0.1" value="9.8">
+      </div>
+      <div class="ctrl">
+        <label>v₀ (en el punto más bajo) <span class="val" id="v07val">3.00 m/s</span></label>
+        <input type="range" id="v07" min="0.1" max="12" step="0.1" value="3.0">
+      </div>
+    </div>
+    <div class="buttons">
+      <button class="primary" id="playBtn7">▶ Reproducir</button>
+      <button id="resetBtn7">⟲ Reiniciar</button>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num" id="stat-t7">0.000 s</div><div class="lbl">tiempo</div></div>
+      <div class="stat"><div class="num" id="stat-theta7">0.0°</div><div class="lbl">θ actual</div></div>
+      <div class="stat"><div class="num" id="stat-T7">—</div><div class="lbl">T: vuelve a θ(0) con el mismo sentido</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- Física ----------
+const state = {
+  R: 1.0,
+  g: 9.8,
+  theta0: 0.01,   // rad, "apartada un angulo muy pequeño"
+  dt: 0.0005,     // paso Euler chico para precision
+  t: 0,
+  theta: 0.01,
+  running: false,
+  tLlegada: null,
+  history: []     // {t, theta}
+};
+
+function dtheta_dt(theta, g, R) {
+  const val = 2 * g / R * (1 - Math.cos(theta));
+  return val > 0 ? Math.sqrt(val) : 0; // evita NaN por redondeo cerca de theta=0
+}
+
+function resetSim() {
+  state.t = 0;
+  state.theta = state.theta0;
+  state.tLlegada = null;
+  state.history = [{t: 0, theta: state.theta0}];
+  updateStats();
+  drawScene();
+  drawPlot();
+}
+
+function stepSim(nSubSteps) {
+  for (let k = 0; k < nSubSteps; k++) {
+    if (state.theta >= Math.PI / 2) {
+      if (state.tLlegada === null) state.tLlegada = state.t;
+      state.running = false;
+      break;
+    }
+    const d = dtheta_dt(state.theta, state.g, state.R);
+    state.theta += d * state.dt;
+    state.t += state.dt;
+  }
+  state.history.push({t: state.t, theta: Math.min(state.theta, Math.PI/2)});
+  // no dejar crecer demasiado el historial
+  if (state.history.length > 4000) state.history.shift();
+}
+
+// ---------- Dibujo: escena (riel + bolita) ----------
+const sceneCanvas = document.getElementById('scene');
+const sctx = sceneCanvas.getContext('2d');
+
+function drawScene() {
+  const w = sceneCanvas.width, h = sceneCanvas.height;
+  sctx.clearRect(0, 0, w, h);
+
+  // El radio en pixeles escala realmente con R (metros -> px), asi que al
+  // mover el slider de R el dibujo crece/achica. Se clampea para que
+  // siempre entre en el canvas.
+  const PX_PER_METER = 130;
+  const margin = 22;
+  const cx = 200;
+  const cy = h - 40; // dejamos espacio abajo para el "suelo"
+  const maxPxRByTop = cy - margin;         // que no se corte arriba
+  const maxPxRByRight = w - margin - cx;   // que no se corte a la derecha
+  const pxR = Math.max(18, Math.min(state.R * PX_PER_METER, maxPxRByTop, maxPxRByRight));
+
+  // riel: cuarto de circunferencia desde arriba (theta=0) hasta el costado (theta=pi/2)
+  sctx.strokeStyle = '#3d4a6b';
+  sctx.lineWidth = 4;
+  sctx.beginPath();
+  sctx.arc(cx, cy, pxR, -Math.PI/2, 0, false); // de arriba (12 o'clock) a la derecha (3 o'clock)
+  sctx.stroke();
+
+  // centro
+  sctx.fillStyle = '#2c3958';
+  sctx.beginPath();
+  sctx.arc(cx, cy, 3, 0, 2*Math.PI);
+  sctx.fill();
+
+  // radio guia hasta la bolita
+  const theta = state.theta;
+  const bx = cx + pxR * Math.sin(theta);
+  const by = cy - pxR * Math.cos(theta);
+
+  sctx.strokeStyle = '#26304a';
+  sctx.lineWidth = 1.5;
+  sctx.setLineDash([4,4]);
+  sctx.beginPath();
+  sctx.moveTo(cx, cy);
+  sctx.lineTo(bx, by);
+  sctx.stroke();
+  sctx.setLineDash([]);
+
+  // etiqueta theta
+  sctx.fillStyle = '#8b96ab';
+  sctx.font = '13px sans-serif';
+  sctx.fillText('θ', cx + 14, cy - 6);
+
+  // etiqueta R sobre el radio guia (punto medio)
+  sctx.fillStyle = '#5ec8f8';
+  sctx.font = '12px sans-serif';
+  const midx = cx + (pxR * 0.55) * Math.sin(theta);
+  const midy = cy - (pxR * 0.55) * Math.cos(theta);
+  sctx.fillText('R = ' + state.R.toFixed(2) + ' m', midx + 8, midy);
+
+  // vector g
+  sctx.strokeStyle = '#556082';
+  sctx.beginPath();
+  sctx.moveTo(w - 40, 20);
+  sctx.lineTo(w - 40, 60);
+  sctx.stroke();
+  sctx.beginPath();
+  sctx.moveTo(w - 40, 60);
+  sctx.lineTo(w - 45, 52);
+  sctx.moveTo(w - 40, 60);
+  sctx.lineTo(w - 35, 52);
+  sctx.stroke();
+  sctx.fillText('g', w - 34, 40);
+
+  // bolita
+  sctx.fillStyle = '#ff8a5c';
+  sctx.beginPath();
+  sctx.arc(bx, by, 10, 0, 2*Math.PI);
+  sctx.fill();
+  sctx.strokeStyle = '#ffb08a';
+  sctx.lineWidth = 2;
+  sctx.stroke();
+
+  // "suelo" (linea vertical donde theta=pi/2)
+  sctx.strokeStyle = '#26304a';
+  sctx.lineWidth = 2;
+  sctx.beginPath();
+  sctx.moveTo(cx + pxR, cy - pxR - 10);
+  sctx.lineTo(cx + pxR, cy + 20);
+  sctx.stroke();
+}
+
+// ---------- Dibujo: grafico theta(t) ----------
+const plotCanvas = document.getElementById('plot');
+const pctx = plotCanvas.getContext('2d');
+
+function drawPlot() {
+  const w = plotCanvas.width, h = plotCanvas.height;
+  pctx.clearRect(0, 0, w, h);
+
+  const margin = {l: 55, r: 20, t: 20, b: 40};
+  const plotW = w - margin.l - margin.r;
+  const plotH = h - margin.t - margin.b;
+
+  const tMax = Math.max(1.0, state.t * 1.15, 0.5);
+  const thetaMax = Math.PI / 2;
+
+  // ejes
+  pctx.strokeStyle = '#26304a';
+  pctx.lineWidth = 1;
+  pctx.beginPath();
+  pctx.moveTo(margin.l, margin.t);
+  pctx.lineTo(margin.l, margin.t + plotH);
+  pctx.lineTo(margin.l + plotW, margin.t + plotH);
+  pctx.stroke();
+
+  // grid y ticks en y: 0, pi/4, pi/2
+  const yTicks = [
+    {v: 0, label: '0'},
+    {v: Math.PI/4, label: 'π/4'},
+    {v: Math.PI/2, label: 'π/2'}
+  ];
+  pctx.fillStyle = '#8b96ab';
+  pctx.font = '11px sans-serif';
+  pctx.textAlign = 'right';
+  yTicks.forEach(tk => {
+    const y = margin.t + plotH - (tk.v / thetaMax) * plotH;
+    pctx.strokeStyle = '#1a2338';
+    pctx.beginPath();
+    pctx.moveTo(margin.l, y);
+    pctx.lineTo(margin.l + plotW, y);
+    pctx.stroke();
+    pctx.fillText(tk.label, margin.l - 8, y + 4);
+  });
+
+  // ticks en x
+  pctx.textAlign = 'center';
+  const nXticks = 5;
+  for (let i = 0; i <= nXticks; i++) {
+    const tv = (tMax / nXticks) * i;
+    const x = margin.l + (tv / tMax) * plotW;
+    pctx.fillText(tv.toFixed(2), x, margin.t + plotH + 16);
+  }
+
+  pctx.textAlign = 'center';
+  pctx.fillText('t [s]', margin.l + plotW/2, h - 6);
+  pctx.save();
+  pctx.translate(14, margin.t + plotH/2);
+  pctx.rotate(-Math.PI/2);
+  pctx.fillText('θ [rad]', 0, 0);
+  pctx.restore();
+
+  // curva
+  if (state.history.length > 1) {
+    pctx.strokeStyle = '#5ec8f8';
+    pctx.lineWidth = 2;
+    pctx.beginPath();
+    state.history.forEach((p, i) => {
+      const x = margin.l + (p.t / tMax) * plotW;
+      const y = margin.t + plotH - (p.theta / thetaMax) * plotH;
+      if (i === 0) pctx.moveTo(x, y); else pctx.lineTo(x, y);
+    });
+    pctx.stroke();
+
+    // punto actual
+    const last = state.history[state.history.length - 1];
+    const x = margin.l + (last.t / tMax) * plotW;
+    const y = margin.t + plotH - (last.theta / thetaMax) * plotH;
+    pctx.fillStyle = '#ff8a5c';
+    pctx.beginPath();
+    pctx.arc(x, y, 4, 0, 2*Math.PI);
+    pctx.fill();
+  }
+
+  // linea de referencia en pi/2 (suelo)
+  const ySuelo = margin.t + plotH - (Math.PI/2 / thetaMax) * plotH;
+  pctx.strokeStyle = '#3d4a6b';
+  pctx.setLineDash([5,5]);
+  pctx.beginPath();
+  pctx.moveTo(margin.l, ySuelo);
+  pctx.lineTo(margin.l + plotW, ySuelo);
+  pctx.stroke();
+  pctx.setLineDash([]);
+}
+
+// ---------- UI ----------
+function updateStats() {
+  document.getElementById('stat-t').textContent = state.t.toFixed(3) + ' s';
+  document.getElementById('stat-theta').textContent = (state.theta * 180/Math.PI).toFixed(1) + '°';
+  document.getElementById('stat-tsuelo').textContent = state.tLlegada !== null
+    ? state.tLlegada.toFixed(4) + ' s'
+    : '—';
+}
+
+const Rslider = document.getElementById('R');
+const gslider = document.getElementById('g');
+const Rval = document.getElementById('Rval');
+const gval = document.getElementById('gval');
+
+Rslider.addEventListener('input', () => {
+  state.R = parseFloat(Rslider.value);
+  Rval.textContent = state.R.toFixed(2) + ' m';
+  resetSim();
+});
+gslider.addEventListener('input', () => {
+  state.g = parseFloat(gslider.value);
+  gval.textContent = state.g.toFixed(2) + ' m/s²';
+  resetSim();
+});
+
+const playBtn = document.getElementById('playBtn');
+const resetBtn = document.getElementById('resetBtn');
+
+playBtn.addEventListener('click', () => {
+  if (state.theta >= Math.PI/2 - 1e-6) resetSim();
+  state.running = !state.running;
+  playBtn.textContent = state.running ? '⏸ Pausar' : '▶ Reproducir';
+});
+
+resetBtn.addEventListener('click', () => {
+  state.running = false;
+  playBtn.textContent = '▶ Reproducir';
+  resetSim();
+});
+
+// ---------- Loop de animacion ----------
+// avanzamos varios sub-pasos de Euler por frame para que la animacion
+// se vea a "velocidad real" en segundos de reloj, pero el dt interno
+// sigue siendo chico (estable numericamente).
+const REAL_TIME_FACTOR = 0.6; // ralentizado para poder apreciar el movimiento
+let lastFrame = null;
+
+function loop(ts) {
+  if (lastFrame === null) lastFrame = ts;
+  const dtFrame = Math.min((ts - lastFrame) / 1000, 0.05); // clamp por si la tab estuvo en 2do plano
+  lastFrame = ts;
+
+  if (state.running) {
+    const simTimeToAdvance = dtFrame * REAL_TIME_FACTOR;
+    const nSub = Math.max(1, Math.round(simTimeToAdvance / state.dt));
+    stepSim(nSub);
+    updateStats();
+  }
+
+  drawScene();
+  drawPlot();
+  requestAnimationFrame(loop);
+}
+
+resetSim();
+requestAnimationFrame(loop);
+
+// =====================================================================
+// ============  PROBLEMA 7 — particula en varilla rigida  ============
+// =====================================================================
+
+const state7 = {
+  L: 1.0,
+  g: 9.8,
+  v0: 3.0,
+  dt: 0.0005,
+  t: 0,
+  theta: 0,
+  signo: 1,       // +1 = subiendo (rama +), -1 = bajando (rama -)
+  wasNegative: false,
+  T: null,        // periodo: instante en que vuelve a theta=0 con el mismo sentido
+  running: false,
+  history: []
+};
+
+function moduloThetaDot7(theta, g, L, v0) {
+  const arg = v0 * v0 / (L * L) + 2 * g * (Math.cos(theta) - 1) / L;
+  return arg > 0 ? Math.sqrt(arg) : 0;
+}
+
+function thetaVfor7(g, L, v0) {
+  const vCrit = 2 * Math.sqrt(g * L);
+  return v0 < vCrit ? Math.acos(1 - (v0 * v0) / (2 * g * L)) : null;
+}
+
+function resetSim7() {
+  state7.t = 0;
+  state7.theta = 0;
+  state7.signo = 1;
+  state7.wasNegative = false;
+  state7.T = null;
+  state7.history = [{ t: 0, theta: 0 }];
+  updateStats7();
+  drawScene7();
+  drawPlot7();
+}
+
+function stepSim7(nSubSteps) {
+  const thetaV = thetaVfor7(state7.g, state7.L, state7.v0);
+  for (let k = 0; k < nSubSteps; k++) {
+    const prevTheta = state7.theta;
+    const prevTime = state7.t;
+    const v = moduloThetaDot7(prevTheta, state7.g, state7.L, state7.v0);
+    let propuesto = prevTheta + state7.signo * v * state7.dt;
+
+    if (thetaV !== null) {
+      // oscila: al pasarse del punto de retorno, refleja el excedente
+      // hacia adentro e invierte el sentido (concatena rama + y rama -)
+      if (propuesto > thetaV) {
+        propuesto = thetaV - (propuesto - thetaV);
+        state7.signo = -1;
+      } else if (propuesto < -thetaV) {
+        propuesto = -thetaV + (-thetaV - propuesto);
+        state7.signo = 1;
+      }
+    }
+
+    // deteccion del periodo: vuelve a theta=0 con el mismo sentido inicial (+)
+    if (state7.T === null) {
+      if (thetaV !== null) {
+        if (prevTheta < 0) state7.wasNegative = true;
+        if (state7.wasNegative && prevTheta < 0 && propuesto >= 0 && state7.signo === 1) {
+          const frac = (0 - prevTheta) / (propuesto - prevTheta);
+          state7.T = prevTime + frac * state7.dt;
+        }
+      } else if (prevTheta < 2 * Math.PI && propuesto >= 2 * Math.PI) {
+        // caso rotando: una vuelta completa = misma posicion, mismo sentido
+        const frac = (2 * Math.PI - prevTheta) / (propuesto - prevTheta);
+        state7.T = prevTime + frac * state7.dt;
+      }
+    }
+
+    state7.theta = propuesto;
+    state7.t = prevTime + state7.dt;
+  }
+  state7.history.push({ t: state7.t, theta: state7.theta });
+  if (state7.history.length > 6000) state7.history.shift();
+}
+
+// ---------- Dibujo: escena (varilla + masa) ----------
+const sceneCanvas7 = document.getElementById('scene7');
+const sctx7 = sceneCanvas7.getContext('2d');
+
+function drawScene7() {
+  const w = sceneCanvas7.width, h = sceneCanvas7.height;
+  sctx7.clearRect(0, 0, w, h);
+
+  const PX_PER_METER = 110;
+  const margin = 34;
+  const cx = w / 2;
+  const cy = h / 2 - 10;
+  const maxPxR = Math.min(cy - margin, (h - cy) - margin, w / 2 - margin);
+  const pxR = Math.max(18, Math.min(state7.L * PX_PER_METER, maxPxR));
+
+  // circulo guia: locus posible de la masa
+  sctx7.strokeStyle = '#232d47';
+  sctx7.setLineDash([3, 5]);
+  sctx7.lineWidth = 1;
+  sctx7.beginPath();
+  sctx7.arc(cx, cy, pxR, 0, 2 * Math.PI);
+  sctx7.stroke();
+  sctx7.setLineDash([]);
+
+  // vertical de referencia (theta = 0, punto mas bajo)
+  sctx7.strokeStyle = '#26304a';
+  sctx7.lineWidth = 1.5;
+  sctx7.beginPath();
+  sctx7.moveTo(cx, cy);
+  sctx7.lineTo(cx, cy + pxR);
+  sctx7.stroke();
+
+  const theta = state7.theta;
+  const bx = cx + pxR * Math.sin(theta);
+  const by = cy + pxR * Math.cos(theta);
+
+  // varilla
+  sctx7.strokeStyle = '#3d4a6b';
+  sctx7.lineWidth = 3;
+  sctx7.beginPath();
+  sctx7.moveTo(cx, cy);
+  sctx7.lineTo(bx, by);
+  sctx7.stroke();
+
+  // pivote P
+  sctx7.fillStyle = '#2c3958';
+  sctx7.beginPath();
+  sctx7.arc(cx, cy, 4, 0, 2 * Math.PI);
+  sctx7.fill();
+  sctx7.fillStyle = '#8b96ab';
+  sctx7.font = '13px sans-serif';
+  sctx7.fillText('P', cx + 8, cy - 8);
+
+  // etiqueta L sobre la varilla (punto medio)
+  sctx7.fillStyle = '#5ec8f8';
+  sctx7.font = '12px sans-serif';
+  const midx = cx + (pxR * 0.55) * Math.sin(theta);
+  const midy = cy + (pxR * 0.55) * Math.cos(theta);
+  sctx7.fillText('L = ' + state7.L.toFixed(2) + ' m', midx + 8, midy);
+
+  // vector g
+  sctx7.strokeStyle = '#556082';
+  sctx7.beginPath();
+  sctx7.moveTo(w - 40, 20);
+  sctx7.lineTo(w - 40, 60);
+  sctx7.stroke();
+  sctx7.beginPath();
+  sctx7.moveTo(w - 40, 60);
+  sctx7.lineTo(w - 45, 52);
+  sctx7.moveTo(w - 40, 60);
+  sctx7.lineTo(w - 35, 52);
+  sctx7.stroke();
+  sctx7.fillStyle = '#8b96ab';
+  sctx7.fillText('g', w - 34, 40);
+
+  // masa
+  sctx7.fillStyle = '#ff8a5c';
+  sctx7.beginPath();
+  sctx7.arc(bx, by, 10, 0, 2 * Math.PI);
+  sctx7.fill();
+  sctx7.strokeStyle = '#ffb08a';
+  sctx7.lineWidth = 2;
+  sctx7.stroke();
+}
+
+// ---------- Dibujo: grafico theta(t) ----------
+const plotCanvas7 = document.getElementById('plot7');
+const pctx7 = plotCanvas7.getContext('2d');
+
+function gcd7(a, b) { return b === 0 ? a : gcd7(b, a % b); }
+
+function labelPi4_7(n) {
+  // n: multiplo entero de pi/4
+  if (n === 0) return '0';
+  const num = Math.abs(n), signo = n < 0 ? '-' : '';
+  const d = gcd7(num, 4);
+  const nn = num / d, dd = 4 / d;
+  let cuerpo;
+  if (dd === 1) cuerpo = nn === 1 ? 'π' : nn + 'π';
+  else cuerpo = nn === 1 ? 'π/' + dd : nn + 'π/' + dd;
+  return signo + cuerpo;
+}
+
+function drawPlot7() {
+  const w = plotCanvas7.width, h = plotCanvas7.height;
+  pctx7.clearRect(0, 0, w, h);
+
+  const margin = { l: 55, r: 20, t: 20, b: 40 };
+  const plotW = w - margin.l - margin.r;
+  const plotH = h - margin.t - margin.b;
+
+  const tMax = Math.max(1.0, state7.t * 1.15, 0.5);
+
+  const thetaV = thetaVfor7(state7.g, state7.L, state7.v0);
+  let thetaMax, thetaMin;
+  if (thetaV !== null) {
+    thetaMax = thetaV * 1.25;
+    thetaMin = -thetaMax;
+  } else {
+    const maxHist = state7.history.reduce((m, p) => Math.max(m, p.theta), 0.1);
+    thetaMax = maxHist * 1.1;
+    thetaMin = 0;
+  }
+  const thetaRange = thetaMax - thetaMin;
+
+  // ejes
+  pctx7.strokeStyle = '#26304a';
+  pctx7.lineWidth = 1;
+  pctx7.beginPath();
+  pctx7.moveTo(margin.l, margin.t);
+  pctx7.lineTo(margin.l, margin.t + plotH);
+  pctx7.lineTo(margin.l + plotW, margin.t + plotH);
+  pctx7.stroke();
+
+  // grid y ticks en y, en multiplos de pi/4
+  pctx7.fillStyle = '#8b96ab';
+  pctx7.font = '11px sans-serif';
+  pctx7.textAlign = 'right';
+  const step = Math.PI / 4;
+  const nStart = Math.ceil(thetaMin / step);
+  const nEnd = Math.floor(thetaMax / step);
+  for (let n = nStart; n <= nEnd; n++) {
+    const val = n * step;
+    const y = margin.t + plotH - ((val - thetaMin) / thetaRange) * plotH;
+    pctx7.strokeStyle = '#1a2338';
+    pctx7.beginPath();
+    pctx7.moveTo(margin.l, y);
+    pctx7.lineTo(margin.l + plotW, y);
+    pctx7.stroke();
+    pctx7.fillStyle = '#8b96ab';
+    pctx7.fillText(labelPi4_7(n), margin.l - 8, y + 4);
+  }
+
+  // ticks en x
+  pctx7.textAlign = 'center';
+  const nXticks = 5;
+  for (let i = 0; i <= nXticks; i++) {
+    const tv = (tMax / nXticks) * i;
+    const x = margin.l + (tv / tMax) * plotW;
+    pctx7.fillText(tv.toFixed(2), x, margin.t + plotH + 16);
+  }
+
+  pctx7.fillText('t [s]', margin.l + plotW / 2, h - 6);
+  pctx7.save();
+  pctx7.translate(14, margin.t + plotH / 2);
+  pctx7.rotate(-Math.PI / 2);
+  pctx7.fillText('θ [rad]', 0, 0);
+  pctx7.restore();
+
+  // lineas de referencia en los puntos de retorno (si oscila)
+  if (thetaV !== null) {
+    [thetaV, -thetaV].forEach(val => {
+      const y = margin.t + plotH - ((val - thetaMin) / thetaRange) * plotH;
+      pctx7.strokeStyle = '#3d4a6b';
+      pctx7.setLineDash([5, 5]);
+      pctx7.beginPath();
+      pctx7.moveTo(margin.l, y);
+      pctx7.lineTo(margin.l + plotW, y);
+      pctx7.stroke();
+      pctx7.setLineDash([]);
+    });
+  }
+
+  // curva
+  if (state7.history.length > 1) {
+    pctx7.strokeStyle = '#5ec8f8';
+    pctx7.lineWidth = 2;
+    pctx7.beginPath();
+    state7.history.forEach((p, i) => {
+      const x = margin.l + (p.t / tMax) * plotW;
+      const y = margin.t + plotH - ((p.theta - thetaMin) / thetaRange) * plotH;
+      if (i === 0) pctx7.moveTo(x, y); else pctx7.lineTo(x, y);
+    });
+    pctx7.stroke();
+
+    const last = state7.history[state7.history.length - 1];
+    const x = margin.l + (last.t / tMax) * plotW;
+    const y = margin.t + plotH - ((last.theta - thetaMin) / thetaRange) * plotH;
+    pctx7.fillStyle = '#ff8a5c';
+    pctx7.beginPath();
+    pctx7.arc(x, y, 4, 0, 2 * Math.PI);
+    pctx7.fill();
+  }
+
+  // marca vertical en t = T (si ya se detecto el periodo)
+  if (state7.T !== null && state7.T <= tMax) {
+    const xT = margin.l + (state7.T / tMax) * plotW;
+    pctx7.strokeStyle = '#ff8a5c';
+    pctx7.setLineDash([2, 3]);
+    pctx7.beginPath();
+    pctx7.moveTo(xT, margin.t);
+    pctx7.lineTo(xT, margin.t + plotH);
+    pctx7.stroke();
+    pctx7.setLineDash([]);
+  }
+}
+
+// ---------- UI ----------
+function updateStats7() {
+  document.getElementById('stat-t7').textContent = state7.t.toFixed(3) + ' s';
+  document.getElementById('stat-theta7').textContent = (state7.theta * 180 / Math.PI).toFixed(1) + '°';
+  document.getElementById('stat-T7').textContent = state7.T !== null ? state7.T.toFixed(4) + ' s' : '—';
+}
+
+const L7slider = document.getElementById('L7');
+const g7slider = document.getElementById('g7');
+const v07slider = document.getElementById('v07');
+const Lval = document.getElementById('Lval');
+const g7val = document.getElementById('g7val');
+const v07val = document.getElementById('v07val');
+
+L7slider.addEventListener('input', () => {
+  state7.L = parseFloat(L7slider.value);
+  Lval.textContent = state7.L.toFixed(2) + ' m';
+  resetSim7();
+});
+g7slider.addEventListener('input', () => {
+  state7.g = parseFloat(g7slider.value);
+  g7val.textContent = state7.g.toFixed(2) + ' m/s²';
+  resetSim7();
+});
+v07slider.addEventListener('input', () => {
+  state7.v0 = parseFloat(v07slider.value);
+  v07val.textContent = state7.v0.toFixed(2) + ' m/s';
+  resetSim7();
+});
+
+const playBtn7 = document.getElementById('playBtn7');
+const resetBtn7 = document.getElementById('resetBtn7');
+
+playBtn7.addEventListener('click', () => {
+  state7.running = !state7.running;
+  playBtn7.textContent = state7.running ? '⏸ Pausar' : '▶ Reproducir';
+});
+
+resetBtn7.addEventListener('click', () => {
+  state7.running = false;
+  playBtn7.textContent = '▶ Reproducir';
+  resetSim7();
+});
+
+// ---------- Loop de animacion ----------
+const REAL_TIME_FACTOR7 = 0.6;
+let lastFrame7 = null;
+
+function loop7(ts) {
+  if (lastFrame7 === null) lastFrame7 = ts;
+  const dtFrame = Math.min((ts - lastFrame7) / 1000, 0.05);
+  lastFrame7 = ts;
+
+  if (state7.running) {
+    const simTimeToAdvance = dtFrame * REAL_TIME_FACTOR7;
+    const nSub = Math.max(1, Math.round(simTimeToAdvance / state7.dt));
+    stepSim7(nSub);
+    updateStats7();
+  }
+
+  drawScene7();
+  drawPlot7();
+  requestAnimationFrame(loop7);
+}
+
+resetSim7();
+requestAnimationFrame(loop7);
+</script>
+
+</body>
+</html>
