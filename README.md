@@ -1,6 +1,7 @@
-# Física 1 (DF, Otero y Garzón) — Guía 2, Problemas 6 y 7
+# Física 1 (DF, Otero y Garzón) — Guía 2 (Problemas 6 y 7) y Guía 8 (Problema 4)
 
-En este repositorio hay material complementario para los **problemas 6 y 7 de la Guía 2**:
+En este repositorio hay material complementario para los **problemas 6 y 7 de la Guía 2** y
+el **problema 4 de la Guía 8** (péndulo simple):
 
 1. Una **animación interactiva** en un archivo `.html` que se abre en el navegador.
 2. Un **link a una notebook de Google Colab** donde los mismos dos problemas se resuelven
@@ -11,22 +12,23 @@ hace el sistema y para tener una forma independiente de chequear los resultados.
 
 **Links rápidos:**
 
-- Animación online: <https://joctavio287.github.io/Fisica1DFOteroyGarzon2026/problemas_67.html>
+- Animación online (Guía 2): <https://joctavio287.github.io/Fisica1DFOteroyGarzon2026/problemas_67_guia_2.html>
+- Animación online (Guía 8, péndulo): <https://joctavio287.github.io/Fisica1DFOteroyGarzon2026/problema_4_guia_8.html>
 - Repositorio (código fuente y descarga): <https://github.com/joctavio287/Fisica1DFOteroyGarzon2026>
 - Notebook de Colab: [método de Euler](https://colab.research.google.com/drive/1biXkntN14Zl5Me_uEdYg4BMtR0pWWV00#scrollTo=DIYD7bdbPrwl)
 
 ---
 
-## 1. La animación: `problemas_67.html`
+## 1. La animación: `problemas_67_guia_2.html`
 
 **▶ Abrir la animación directamente en el navegador:**
-<https://joctavio287.github.io/Fisica1DFOteroyGarzon2026/problemas_67.html>
+<https://joctavio287.github.io/Fisica1DFOteroyGarzon2026/problemas_67_guia_2.html>
 
 Con ese link no hace falta descargar ni instalar nada: se abre como cualquier página web,
 también desde el celular. Más abajo está explicado qué es ese archivo y cómo abrirlo en la
 propia computadora, para quien prefiera tenerlo guardado.
 
-**Archivo en el repositorio:** [problemas_67.html](problemas_67.html)
+**Archivo en el repositorio:** [problemas_67_guia_2.html](problemas_67_guia_2.html)
 
 Muestra dos simulaciones, una abajo de la otra:
 
@@ -41,6 +43,12 @@ En ambos casos se pueden mover los parámetros (R, L, g, v₀) con las barras de
 apretar **▶ Reproducir** o **⟲ Reiniciar**. Es interesante, por ejemplo, subir y bajar v₀
 en el problema 7 hasta encontrar el valor a partir del cual la varilla da la vuelta completa
 en lugar de oscilar.
+
+**Guía 8, Problema 4 (péndulo simple):** [problema_4_guia_8.html](problema_4_guia_8.html)
+— [abrir online](https://joctavio287.github.io/Fisica1DFOteroyGarzon2026/problema_4_guia_8.html).
+Repasa el potencial U(θ) y los tipos de movimiento según la energía (partes a y b), y anima
+el péndulo integrado con el método de Euler (parte c), junto con U(θ), θ(t) y θ̇(t). Se
+pueden elegir condiciones iniciales y el paso h, y al final está el código en Python.
 
 ### ¿Qué es un archivo HTML y cómo se abre?
 
@@ -58,7 +66,7 @@ animación. No es un programa que se instale, no hace falta tener internet para 
 
 **Para abrirlo:**
 
-1. Descargar el archivo `problemas_67.html` a la computadora. Si se está mirando el
+1. Descargar el archivo `.html` a la computadora. Si se está mirando el
    repositorio en GitHub: entrar al archivo, buscar el botón **Download raw file** (o hacer
    clic derecho sobre "Raw" → *Guardar enlace como…*) y guardarlo, por ejemplo, en la carpeta
    de Descargas.
