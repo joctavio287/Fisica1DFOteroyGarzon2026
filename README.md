@@ -12,6 +12,7 @@ hace el sistema y para tener una forma independiente de chequear los resultados.
 
 **Links rápidos:**
 
+- Sitio con todos los problemas: <https://joctavio287.github.io/Fisica1DFOteroyGarzon2026/>
 - Animación online (Guía 2): <https://joctavio287.github.io/Fisica1DFOteroyGarzon2026/problemas_67_guia_2.html>
 - Animación online (Guía 8, péndulo): <https://joctavio287.github.io/Fisica1DFOteroyGarzon2026/problema_4_guia_8.html>
 - Repositorio (código fuente y descarga): <https://github.com/joctavio287/Fisica1DFOteroyGarzon2026>
