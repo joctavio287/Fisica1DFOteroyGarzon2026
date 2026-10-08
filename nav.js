@@ -18,11 +18,13 @@ const PAGES = [
 ];
 
 (function () {
+  // La portada es el paso 0 de la secuencia: desde ahí "Siguiente" lleva al primer problema.
   const current = decodeURIComponent(location.pathname.split('/').pop());
-  const i = PAGES.findIndex(p => p.file === current);
-  if (i < 0) return;
+  const isHome = current === '' || current === 'index.html';
+  const i = isHome ? -1 : PAGES.findIndex(p => p.file === current);
+  if (!isHome && i < 0) return;
 
-  const prev = PAGES[i - 1];
+  const prev = i > 0 ? PAGES[i - 1] : i === 0 ? { file: './', title: 'Inicio' } : null;
   const next = PAGES[i + 1];
   const body = document.body;
   const bodyStyle = getComputedStyle(body);
@@ -51,8 +53,8 @@ const PAGES = [
   nav.id = 'probnav';
   nav.innerHTML =
     link(prev, '← <span class="lbl">Anterior</span>') +
-    '<a href="./">Inicio</a>' +
-    `<span class="where">${PAGES[i].title} (${i + 1}/${PAGES.length})</span>` +
+    (isHome ? '<span class="off">Inicio</span>' : '<a href="./">Inicio</a>') +
+    `<span class="where">${isHome ? `${PAGES.length} problemas` :`${PAGES[i].title} (${i + 1}/${PAGES.length})`}</span>` +
     link(next, '<span class="lbl">Siguiente</span> →');
   body.prepend(nav);
 

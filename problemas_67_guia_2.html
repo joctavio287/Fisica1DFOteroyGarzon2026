@@ -1,263 +1,153 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Riel semicircular y péndulo con varilla — Física 1, Guía 2, Problemas 6 y 7</title>
 <script src="nav.js" defer></script>
 <style>
+:root{
+  --bg:#f5f6f9; --card:#ffffff; --ink:#1b2130; --muted:#5b6579; --line:#dde2ea; --grid:#eceff5;
+  --accent:#2457d6; --onaccent:#ffffff; --ref:#8a93a6; --warn:#d9480f; --rose:#d6336c;
+  --eqbg:#f0f4ff;
+}
+@media (prefers-color-scheme: dark){
   :root{
-    --bg: #0f1420;
-    --panel: #161d2e;
-    --accent: #5ec8f8;
-    --accent2: #ff8a5c;
-    --text: #e8edf5;
-    --muted: #8b96ab;
-    --grid: #26304a;
+    --bg:#0e1117; --card:#161b25; --ink:#e8ecf4; --muted:#9aa4b8; --line:#2a3242; --grid:#212836;
+    --accent:#6ea0ff; --onaccent:#0b1220; --ref:#7b869c; --warn:#ff9a62; --rose:#ff7aa5;
+    --eqbg:#1a2133;
   }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    padding: 24px;
-  }
-  h1 {
-    font-size: 20px;
-    font-weight: 600;
-    margin: 0 0 4px 0;
-  }
-  .subtitle {
-    color: var(--muted);
-    font-size: 13px;
-    margin-bottom: 20px;
-  }
-  .subtitle code {
-    background: #1e2740;
-    padding: 1px 6px;
-    border-radius: 4px;
-    color: var(--accent);
-  }
-  .layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    max-width: 1180px;
-    margin: 0 auto;
-  }
-  @media (max-width: 900px) {
-    .layout { grid-template-columns: 1fr; }
-  }
-  .panel {
-    background: var(--panel);
-    border-radius: 12px;
-    padding: 16px;
-    border: 1px solid #232d47;
-  }
-  .panel h2 {
-    font-size: 14px;
-    font-weight: 600;
-    margin: 0 0 10px 0;
-    color: var(--accent);
-  }
-  canvas {
-    width: 100%;
-    display: block;
-    background: #0c1120;
-    border-radius: 8px;
-  }
-  .controls {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px 16px;
-    margin-top: 14px;
-  }
-  .ctrl {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .ctrl label {
-    font-size: 12px;
-    color: var(--muted);
-    display: flex;
-    justify-content: space-between;
-  }
-  .ctrl label span.val {
-    color: var(--accent);
-    font-variant-numeric: tabular-nums;
-  }
-  input[type=range] {
-    width: 100%;
-    accent-color: var(--accent);
-  }
-  .buttons {
-    display: flex;
-    gap: 8px;
-    margin-top: 14px;
-  }
-  button {
-    flex: 1;
-    background: #1e2740;
-    color: var(--text);
-    border: 1px solid #2c3958;
-    border-radius: 8px;
-    padding: 9px 12px;
-    font-size: 13px;
-    cursor: pointer;
-    transition: background .15s;
-  }
-  button:hover { background: #263252; }
-  button.primary {
-    background: var(--accent);
-    color: #0c1120;
-    font-weight: 600;
-    border: none;
-  }
-  button.primary:hover { background: #7dd5ff; }
-  .stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-top: 14px;
-  }
-  .stat {
-    background: #0c1120;
-    border-radius: 8px;
-    padding: 10px;
-    text-align: center;
-  }
-  .stat .num {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--accent2);
-    font-variant-numeric: tabular-nums;
-  }
-  .stat .lbl {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 2px;
-  }
-  .legend {
-    display: flex;
-    gap: 16px;
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 8px;
-  }
-  .legend span { display: flex; align-items: center; gap: 6px; }
-  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:22px 16px 70px}
+.eyebrow{margin:0;color:var(--accent);font-weight:600;font-size:.85rem;letter-spacing:.04em;text-transform:uppercase}
+h1{font-size:1.9rem;line-height:1.2;margin:.15em 0 .3em}
+.lead{color:var(--muted);margin:0 0 6px;max-width:75ch}
+h2{font-size:1.25rem;margin:0 0 .6em}
+h3{font-size:.95rem;margin:0 0 6px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:18px 0}
+p{margin:.5em 0}
+.eq{background:var(--eqbg);border-left:3px solid var(--accent);border-radius:6px;padding:10px 14px;margin:10px 0;
+    font-family:"Cambria Math","STIX Two Math","Latin Modern Math",system-ui,sans-serif;font-size:1.08rem;overflow-x:auto}
+canvas{display:block;width:100%;height:auto}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-top:14px}
+.panel{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.lg{font-size:.78rem;color:var(--muted);margin:6px 0 0}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle;margin:0 4px 0 10px}
+.dot:first-child{margin-left:0}
+.controls{display:grid;gap:4px 18px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-top:14px}
+label{display:block;font-size:.88rem;color:var(--muted);margin-bottom:2px}
+label b{color:var(--ink);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%}
+button{font:inherit;font-size:.9rem;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--onaccent);font-weight:600}
+.btns{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2px 14px;font-size:.88rem;margin-top:10px;font-variant-numeric:tabular-nums}
+.readout span{color:var(--muted)}
+.d1{position:relative;display:inline-block;line-height:1}
+.d1::after{content:"";position:absolute;top:-.16em;left:52%;width:.09em;height:.09em;border-radius:50%;background:currentColor}
 </style>
 </head>
 <body>
+<div class="wrap">
 
-<h1>Bolita engarzada en riel semicircular sin fricción</h1>
-<div class="subtitle">
-  Guía 2, Problema 6(c) — Física 1. Ecuación de movimiento (conservación de energía):
-  <code>θ̇² = (2g/R)(1 − cos θ)</code>, con θ(0) = 0.01 rad, θ̇(0) = 0.
-</div>
+<header>
+  <p class="eyebrow">Mecánica clásica · Problemas 6 y 7</p>
+  <h1>Riel semicircular y partícula en una varilla rígida</h1>
+  <p class="lead">Las dos animaciones integran la ecuación de movimiento con el método de Euler en el navegador. Se pueden cambiar los parámetros y reproducir o reiniciar cada simulación.</p>
+</header>
 
-<div class="layout">
+<!-- ============ Problema 6 ============ -->
+<section class="card">
+  <h2>1. Problema 6(c): bolita engarzada en riel semicircular sin fricción</h2>
+  <p>Ecuación de movimiento (conservación de energía), con θ(0) = 0.01 rad, <span class="d1">θ</span>(0) = 0:</p>
+  <div class="eq"><span class="d1">θ</span>² = (2<i>g</i>/<i>R</i>)(1 − cos θ)</div>
 
-  <div class="panel">
-    <h2>Animación en el riel</h2>
-    <canvas id="scene" width="560" height="420"></canvas>
-    <div class="legend">
-      <span><span class="dot" style="background:var(--accent2)"></span> Bolita</span>
-      <span><span class="dot" style="background:#3d4a6b"></span> Riel semicircular</span>
+  <div class="grid">
+    <div class="panel">
+      <h3>Animación en el riel</h3>
+      <canvas id="scene" width="560" height="420"></canvas>
+      <p class="lg"><span class="dot" style="background:var(--accent)"></span>Bolita <span class="dot" style="background:var(--muted)"></span>Riel semicircular <span class="dot" style="background:var(--warn)"></span>Suelo (θ = π/2)</p>
+    </div>
+    <div class="panel">
+      <h3>θ(t): solución numérica (Euler)</h3>
+      <canvas id="plot" width="560" height="420"></canvas>
     </div>
   </div>
 
-  <div class="panel">
-    <h2>θ(t) — solución numérica (Euler)</h2>
-    <canvas id="plot" width="560" height="420"></canvas>
+  <div class="controls">
+    <div><label>Radio <i>R</i>: <b id="Rval">1.00 m</b></label>
+      <input type="range" id="R" min="0.1" max="2" step="0.01" value="1.0"></div>
+    <div><label>Gravedad <i>g</i>: <b id="gval">9.80 m/s²</b></label>
+      <input type="range" id="g" min="1" max="20" step="0.1" value="9.8"></div>
   </div>
-
-</div>
-
-<div class="layout" style="margin-top:20px; grid-template-columns: 1fr;">
-  <div class="panel">
-    <h2>Parámetros</h2>
-    <div class="controls">
-      <div class="ctrl">
-        <label>R (radio) <span class="val" id="Rval">1.00 m</span></label>
-        <input type="range" id="R" min="0.1" max="2" step="0.01" value="1.0">
-      </div>
-      <div class="ctrl">
-        <label>g (gravedad) <span class="val" id="gval">9.80 m/s²</span></label>
-        <input type="range" id="g" min="1" max="20" step="0.1" value="9.8">
-      </div>
-    </div>
-    <div class="buttons">
-      <button class="primary" id="playBtn">▶ Reproducir</button>
-      <button id="resetBtn">⟲ Reiniciar</button>
-    </div>
-    <div class="stats">
-      <div class="stat"><div class="num" id="stat-t">0.000 s</div><div class="lbl">tiempo</div></div>
-      <div class="stat"><div class="num" id="stat-theta">0.6°</div><div class="lbl">θ actual</div></div>
-      <div class="stat"><div class="num" id="stat-tsuelo">—</div><div class="lbl">t hasta θ=π/2 (llegada al suelo)</div></div>
-    </div>
+  <div class="btns">
+    <button class="primary" id="playBtn">▶ Reproducir</button>
+    <button id="resetBtn">⟲ Reiniciar</button>
   </div>
-</div>
+  <div class="readout">
+    <div><span>t = </span><b id="stat-t">0.000 s</b></div>
+    <div><span>θ = </span><b id="stat-theta">0.6°</b></div>
+    <div><span>t hasta θ = π/2 (llegada al suelo): </span><b id="stat-tsuelo">—</b></div>
+  </div>
+</section>
 
-<hr style="border:none; border-top:1px solid #232d47; max-width:1180px; margin:36px auto;">
+<!-- ============ Problema 7 ============ -->
+<section class="card">
+  <h2>2. Problema 7(d): partícula en el extremo de una varilla rígida</h2>
+  <p>Conservación de energía, con θ(0) = 0, <span class="d1">θ</span>(0) = <i>v</i>₀/<i>L</i>. La rama + (subiendo) y la rama − (bajando) se concatenan invirtiendo el signo en cada punto de retorno:</p>
+  <div class="eq">|<span class="d1">θ</span>| = √( <i>v</i>₀²/<i>L</i>² + (2<i>g</i>/<i>L</i>)(cos θ − 1) )</div>
 
-<h1>Partícula en varilla rígida — Problema 7</h1>
-<div class="subtitle">
-  Guía 2, Problema 7(d) — Física 1. Conservación de energía:
-  <code>|θ̇| = √( v₀²/L² + (2g/L)(cos θ − 1) )</code>, con θ(0) = 0, θ̇(0) = v₀/L.
-  La rama + (subiendo) y la rama − (bajando) se concatenan invirtiendo el signo en cada
-  punto de retorno.
-</div>
-
-<div class="layout">
-
-  <div class="panel">
-    <h2>Animación de la varilla</h2>
-    <canvas id="scene7" width="560" height="420"></canvas>
-    <div class="legend">
-      <span><span class="dot" style="background:var(--accent2)"></span> Masa m</span>
-      <span><span class="dot" style="background:#3d4a6b"></span> Varilla rígida</span>
+  <div class="grid">
+    <div class="panel">
+      <h3>Animación de la varilla</h3>
+      <canvas id="scene7" width="560" height="420"></canvas>
+      <p class="lg"><span class="dot" style="background:var(--accent)"></span>Masa m <span class="dot" style="background:var(--ink)"></span>Varilla rígida</p>
+    </div>
+    <div class="panel">
+      <h3>θ(t): solución numérica (Euler)</h3>
+      <canvas id="plot7" width="560" height="420"></canvas>
     </div>
   </div>
 
-  <div class="panel">
-    <h2>θ(t) — solución numérica (Euler)</h2>
-    <canvas id="plot7" width="560" height="420"></canvas>
+  <div class="controls">
+    <div><label>Longitud <i>L</i>: <b id="Lval">1.00 m</b></label>
+      <input type="range" id="L7" min="0.1" max="2" step="0.01" value="1.0"></div>
+    <div><label>Gravedad <i>g</i>: <b id="g7val">9.80 m/s²</b></label>
+      <input type="range" id="g7" min="1" max="20" step="0.1" value="9.8"></div>
+    <div><label>Velocidad en el punto más bajo <i>v</i>₀: <b id="v07val">3.00 m/s</b></label>
+      <input type="range" id="v07" min="0.1" max="12" step="0.1" value="3.0"></div>
   </div>
-
-</div>
-
-<div class="layout" style="margin-top:20px; grid-template-columns: 1fr;">
-  <div class="panel">
-    <h2>Parámetros</h2>
-    <div class="controls">
-      <div class="ctrl">
-        <label>L (longitud) <span class="val" id="Lval">1.00 m</span></label>
-        <input type="range" id="L7" min="0.1" max="2" step="0.01" value="1.0">
-      </div>
-      <div class="ctrl">
-        <label>g (gravedad) <span class="val" id="g7val">9.80 m/s²</span></label>
-        <input type="range" id="g7" min="1" max="20" step="0.1" value="9.8">
-      </div>
-      <div class="ctrl">
-        <label>v₀ (en el punto más bajo) <span class="val" id="v07val">3.00 m/s</span></label>
-        <input type="range" id="v07" min="0.1" max="12" step="0.1" value="3.0">
-      </div>
-    </div>
-    <div class="buttons">
-      <button class="primary" id="playBtn7">▶ Reproducir</button>
-      <button id="resetBtn7">⟲ Reiniciar</button>
-    </div>
-    <div class="stats">
-      <div class="stat"><div class="num" id="stat-t7">0.000 s</div><div class="lbl">tiempo</div></div>
-      <div class="stat"><div class="num" id="stat-theta7">0.0°</div><div class="lbl">θ actual</div></div>
-      <div class="stat"><div class="num" id="stat-T7">—</div><div class="lbl">T: vuelve a θ(0) con el mismo sentido</div></div>
-    </div>
+  <div class="btns">
+    <button class="primary" id="playBtn7">▶ Reproducir</button>
+    <button id="resetBtn7">⟲ Reiniciar</button>
   </div>
+  <div class="readout">
+    <div><span>t = </span><b id="stat-t7">0.000 s</b></div>
+    <div><span>θ = </span><b id="stat-theta7">0.0°</b></div>
+    <div><span>T (vuelve a θ(0) con el mismo sentido): </span><b id="stat-T7">—</b></div>
+  </div>
+</section>
+
 </div>
 
 <script>
+// ---------- Colores (tomados del tema claro/oscuro del CSS) ----------
+let C = {};
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement);
+  const g = n => cs.getPropertyValue(n).trim();
+  C = { ink: g('--ink'), muted: g('--muted'), line: g('--line'), grid: g('--grid'), accent: g('--accent'),
+        ref: g('--ref'), warn: g('--warn'), rose: g('--rose'), card: g('--card') };
+}
+readTheme();
+if (window.matchMedia) {
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  if (mq.addEventListener) mq.addEventListener('change', readTheme);
+}
+
 // ---------- Física ----------
 const state = {
   R: 1.0,
@@ -322,14 +212,14 @@ function drawScene() {
   const pxR = Math.max(18, Math.min(state.R * PX_PER_METER, maxPxRByTop, maxPxRByRight));
 
   // riel: cuarto de circunferencia desde arriba (theta=0) hasta el costado (theta=pi/2)
-  sctx.strokeStyle = '#3d4a6b';
+  sctx.strokeStyle = C.muted;
   sctx.lineWidth = 4;
   sctx.beginPath();
   sctx.arc(cx, cy, pxR, -Math.PI/2, 0, false); // de arriba (12 o'clock) a la derecha (3 o'clock)
   sctx.stroke();
 
   // centro
-  sctx.fillStyle = '#2c3958';
+  sctx.fillStyle = C.ink;
   sctx.beginPath();
   sctx.arc(cx, cy, 3, 0, 2*Math.PI);
   sctx.fill();
@@ -339,7 +229,7 @@ function drawScene() {
   const bx = cx + pxR * Math.sin(theta);
   const by = cy - pxR * Math.cos(theta);
 
-  sctx.strokeStyle = '#26304a';
+  sctx.strokeStyle = C.ref;
   sctx.lineWidth = 1.5;
   sctx.setLineDash([4,4]);
   sctx.beginPath();
@@ -349,19 +239,19 @@ function drawScene() {
   sctx.setLineDash([]);
 
   // etiqueta theta
-  sctx.fillStyle = '#8b96ab';
-  sctx.font = '13px sans-serif';
+  sctx.fillStyle = C.muted;
+  sctx.font = '13px system-ui, sans-serif';
   sctx.fillText('θ', cx + 14, cy - 6);
 
   // etiqueta R sobre el radio guia (punto medio)
-  sctx.fillStyle = '#5ec8f8';
-  sctx.font = '12px sans-serif';
+  sctx.fillStyle = C.muted;
+  sctx.font = '12px system-ui, sans-serif';
   const midx = cx + (pxR * 0.55) * Math.sin(theta);
   const midy = cy - (pxR * 0.55) * Math.cos(theta);
   sctx.fillText('R = ' + state.R.toFixed(2) + ' m', midx + 8, midy);
 
   // vector g
-  sctx.strokeStyle = '#556082';
+  sctx.strokeStyle = C.muted;
   sctx.beginPath();
   sctx.moveTo(w - 40, 20);
   sctx.lineTo(w - 40, 60);
@@ -375,16 +265,16 @@ function drawScene() {
   sctx.fillText('g', w - 34, 40);
 
   // bolita
-  sctx.fillStyle = '#ff8a5c';
+  sctx.fillStyle = C.accent;
   sctx.beginPath();
   sctx.arc(bx, by, 10, 0, 2*Math.PI);
   sctx.fill();
-  sctx.strokeStyle = '#ffb08a';
+  sctx.strokeStyle = C.card;
   sctx.lineWidth = 2;
   sctx.stroke();
 
   // "suelo" (linea vertical donde theta=pi/2)
-  sctx.strokeStyle = '#26304a';
+  sctx.strokeStyle = C.warn;
   sctx.lineWidth = 2;
   sctx.beginPath();
   sctx.moveTo(cx + pxR, cy - pxR - 10);
@@ -408,7 +298,7 @@ function drawPlot() {
   const thetaMax = Math.PI / 2;
 
   // ejes
-  pctx.strokeStyle = '#26304a';
+  pctx.strokeStyle = C.line;
   pctx.lineWidth = 1;
   pctx.beginPath();
   pctx.moveTo(margin.l, margin.t);
@@ -422,12 +312,12 @@ function drawPlot() {
     {v: Math.PI/4, label: 'π/4'},
     {v: Math.PI/2, label: 'π/2'}
   ];
-  pctx.fillStyle = '#8b96ab';
-  pctx.font = '11px sans-serif';
+  pctx.fillStyle = C.muted;
+  pctx.font = '11px system-ui, sans-serif';
   pctx.textAlign = 'right';
   yTicks.forEach(tk => {
     const y = margin.t + plotH - (tk.v / thetaMax) * plotH;
-    pctx.strokeStyle = '#1a2338';
+    pctx.strokeStyle = C.grid;
     pctx.beginPath();
     pctx.moveTo(margin.l, y);
     pctx.lineTo(margin.l + plotW, y);
@@ -454,7 +344,7 @@ function drawPlot() {
 
   // curva
   if (state.history.length > 1) {
-    pctx.strokeStyle = '#5ec8f8';
+    pctx.strokeStyle = C.accent;
     pctx.lineWidth = 2;
     pctx.beginPath();
     state.history.forEach((p, i) => {
@@ -468,7 +358,7 @@ function drawPlot() {
     const last = state.history[state.history.length - 1];
     const x = margin.l + (last.t / tMax) * plotW;
     const y = margin.t + plotH - (last.theta / thetaMax) * plotH;
-    pctx.fillStyle = '#ff8a5c';
+    pctx.fillStyle = C.accent;
     pctx.beginPath();
     pctx.arc(x, y, 4, 0, 2*Math.PI);
     pctx.fill();
@@ -476,7 +366,7 @@ function drawPlot() {
 
   // linea de referencia en pi/2 (suelo)
   const ySuelo = margin.t + plotH - (Math.PI/2 / thetaMax) * plotH;
-  pctx.strokeStyle = '#3d4a6b';
+  pctx.strokeStyle = C.warn;
   pctx.setLineDash([5,5]);
   pctx.beginPath();
   pctx.moveTo(margin.l, ySuelo);
@@ -650,7 +540,7 @@ function drawScene7() {
   const pxR = Math.max(18, Math.min(state7.L * PX_PER_METER, maxPxR));
 
   // circulo guia: locus posible de la masa
-  sctx7.strokeStyle = '#232d47';
+  sctx7.strokeStyle = C.line;
   sctx7.setLineDash([3, 5]);
   sctx7.lineWidth = 1;
   sctx7.beginPath();
@@ -659,7 +549,7 @@ function drawScene7() {
   sctx7.setLineDash([]);
 
   // vertical de referencia (theta = 0, punto mas bajo)
-  sctx7.strokeStyle = '#26304a';
+  sctx7.strokeStyle = C.ref;
   sctx7.lineWidth = 1.5;
   sctx7.beginPath();
   sctx7.moveTo(cx, cy);
@@ -671,7 +561,7 @@ function drawScene7() {
   const by = cy + pxR * Math.cos(theta);
 
   // varilla
-  sctx7.strokeStyle = '#3d4a6b';
+  sctx7.strokeStyle = C.ink;
   sctx7.lineWidth = 3;
   sctx7.beginPath();
   sctx7.moveTo(cx, cy);
@@ -679,23 +569,23 @@ function drawScene7() {
   sctx7.stroke();
 
   // pivote P
-  sctx7.fillStyle = '#2c3958';
+  sctx7.fillStyle = C.ink;
   sctx7.beginPath();
   sctx7.arc(cx, cy, 4, 0, 2 * Math.PI);
   sctx7.fill();
-  sctx7.fillStyle = '#8b96ab';
-  sctx7.font = '13px sans-serif';
+  sctx7.fillStyle = C.muted;
+  sctx7.font = '13px system-ui, sans-serif';
   sctx7.fillText('P', cx + 8, cy - 8);
 
   // etiqueta L sobre la varilla (punto medio)
-  sctx7.fillStyle = '#5ec8f8';
-  sctx7.font = '12px sans-serif';
+  sctx7.fillStyle = C.muted;
+  sctx7.font = '12px system-ui, sans-serif';
   const midx = cx + (pxR * 0.55) * Math.sin(theta);
   const midy = cy + (pxR * 0.55) * Math.cos(theta);
   sctx7.fillText('L = ' + state7.L.toFixed(2) + ' m', midx + 8, midy);
 
   // vector g
-  sctx7.strokeStyle = '#556082';
+  sctx7.strokeStyle = C.muted;
   sctx7.beginPath();
   sctx7.moveTo(w - 40, 20);
   sctx7.lineTo(w - 40, 60);
@@ -706,15 +596,15 @@ function drawScene7() {
   sctx7.moveTo(w - 40, 60);
   sctx7.lineTo(w - 35, 52);
   sctx7.stroke();
-  sctx7.fillStyle = '#8b96ab';
+  sctx7.fillStyle = C.muted;
   sctx7.fillText('g', w - 34, 40);
 
   // masa
-  sctx7.fillStyle = '#ff8a5c';
+  sctx7.fillStyle = C.accent;
   sctx7.beginPath();
   sctx7.arc(bx, by, 10, 0, 2 * Math.PI);
   sctx7.fill();
-  sctx7.strokeStyle = '#ffb08a';
+  sctx7.strokeStyle = C.card;
   sctx7.lineWidth = 2;
   sctx7.stroke();
 }
@@ -760,7 +650,7 @@ function drawPlot7() {
   const thetaRange = thetaMax - thetaMin;
 
   // ejes
-  pctx7.strokeStyle = '#26304a';
+  pctx7.strokeStyle = C.line;
   pctx7.lineWidth = 1;
   pctx7.beginPath();
   pctx7.moveTo(margin.l, margin.t);
@@ -769,8 +659,8 @@ function drawPlot7() {
   pctx7.stroke();
 
   // grid y ticks en y, en multiplos de pi/4
-  pctx7.fillStyle = '#8b96ab';
-  pctx7.font = '11px sans-serif';
+  pctx7.fillStyle = C.muted;
+  pctx7.font = '11px system-ui, sans-serif';
   pctx7.textAlign = 'right';
   const step = Math.PI / 4;
   const nStart = Math.ceil(thetaMin / step);
@@ -778,12 +668,12 @@ function drawPlot7() {
   for (let n = nStart; n <= nEnd; n++) {
     const val = n * step;
     const y = margin.t + plotH - ((val - thetaMin) / thetaRange) * plotH;
-    pctx7.strokeStyle = '#1a2338';
+    pctx7.strokeStyle = C.grid;
     pctx7.beginPath();
     pctx7.moveTo(margin.l, y);
     pctx7.lineTo(margin.l + plotW, y);
     pctx7.stroke();
-    pctx7.fillStyle = '#8b96ab';
+    pctx7.fillStyle = C.muted;
     pctx7.fillText(labelPi4_7(n), margin.l - 8, y + 4);
   }
 
@@ -807,7 +697,7 @@ function drawPlot7() {
   if (thetaV !== null) {
     [thetaV, -thetaV].forEach(val => {
       const y = margin.t + plotH - ((val - thetaMin) / thetaRange) * plotH;
-      pctx7.strokeStyle = '#3d4a6b';
+      pctx7.strokeStyle = C.warn;
       pctx7.setLineDash([5, 5]);
       pctx7.beginPath();
       pctx7.moveTo(margin.l, y);
@@ -819,7 +709,7 @@ function drawPlot7() {
 
   // curva
   if (state7.history.length > 1) {
-    pctx7.strokeStyle = '#5ec8f8';
+    pctx7.strokeStyle = C.accent;
     pctx7.lineWidth = 2;
     pctx7.beginPath();
     state7.history.forEach((p, i) => {
@@ -832,7 +722,7 @@ function drawPlot7() {
     const last = state7.history[state7.history.length - 1];
     const x = margin.l + (last.t / tMax) * plotW;
     const y = margin.t + plotH - ((last.theta - thetaMin) / thetaRange) * plotH;
-    pctx7.fillStyle = '#ff8a5c';
+    pctx7.fillStyle = C.accent;
     pctx7.beginPath();
     pctx7.arc(x, y, 4, 0, 2 * Math.PI);
     pctx7.fill();
@@ -841,7 +731,7 @@ function drawPlot7() {
   // marca vertical en t = T (si ya se detecto el periodo)
   if (state7.T !== null && state7.T <= tMax) {
     const xT = margin.l + (state7.T / tMax) * plotW;
-    pctx7.strokeStyle = '#ff8a5c';
+    pctx7.strokeStyle = C.rose;
     pctx7.setLineDash([2, 3]);
     pctx7.beginPath();
     pctx7.moveTo(xT, margin.t);
