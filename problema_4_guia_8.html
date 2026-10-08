@@ -1,0 +1,812 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Péndulo simple y método de Euler</title>
+<style>
+:root{
+  --bg:#f5f6f9; --card:#ffffff; --ink:#1b2130; --muted:#5b6579; --line:#dde2ea; --grid:#eceff5;
+  --accent:#2457d6; --onaccent:#ffffff; --ref:#8a93a6; --warn:#d9480f; --rose:#d6336c;
+  --eqbg:#f0f4ff; --code-bg:#0f172a; --code-ink:#e2e8f0;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0e1117; --card:#161b25; --ink:#e8ecf4; --muted:#9aa4b8; --line:#2a3242; --grid:#212836;
+    --accent:#6ea0ff; --onaccent:#0b1220; --ref:#7b869c; --warn:#ff9a62; --rose:#ff7aa5;
+    --eqbg:#1a2133; --code-bg:#0a0e16;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:22px 16px 70px}
+.eyebrow{margin:0;color:var(--accent);font-weight:600;font-size:.85rem;letter-spacing:.04em;text-transform:uppercase}
+h1{font-size:1.9rem;line-height:1.2;margin:.15em 0 .3em}
+.lead{color:var(--muted);margin:0 0 6px;max-width:75ch}
+h2{font-size:1.25rem;margin:0 0 .6em}
+h3{font-size:.95rem;margin:0 0 2px}
+a{color:var(--accent)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:18px 0}
+p{margin:.5em 0}
+ul,ol{padding-left:1.25em;margin:.5em 0}
+li{margin:.3em 0}
+.eq{background:var(--eqbg);border-left:3px solid var(--accent);border-radius:6px;padding:10px 14px;margin:10px 0;
+    font-family:"Cambria Math","STIX Two Math","Latin Modern Math",system-ui,sans-serif;font-size:1.08rem;overflow-x:auto}
+.eq small{color:var(--muted);font-family:system-ui,sans-serif;font-size:.8rem}
+table{border-collapse:collapse;width:100%;font-size:.93rem;margin-top:8px}
+th,td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:.82rem}
+td .m{font-family:"Cambria Math","STIX Two Math","Latin Modern Math",system-ui,sans-serif;white-space:nowrap}
+.sim{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:800px){.sim{grid-template-columns:1fr}}
+canvas{display:block;width:100%}
+#cvP{height:420px;border:1px solid var(--line);border-radius:10px}
+.chart{height:250px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-top:14px}
+.panel{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.lg{font-size:.78rem;color:var(--muted);margin:0 0 4px}
+.lg i{display:inline-block;width:18px;height:0;border-top:3px solid;vertical-align:middle;margin:0 4px 0 8px}
+.lg i:first-child{margin-left:0}
+.lg i.d{border-top-style:dashed}
+.lg i.t{border-top-style:dotted}
+.c-num{border-color:var(--accent)}.c-ref{border-color:var(--ref)}.c-warn{border-color:var(--warn)}.c-rose{border-color:var(--rose)}
+.controls .row{margin-bottom:10px}
+label{display:block;font-size:.88rem;color:var(--muted);margin-bottom:2px}
+label b{color:var(--ink);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%}
+button{font:inherit;font-size:.9rem;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--onaccent);font-weight:600}
+button.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);font-weight:600}
+.btns{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px}
+.btns-title{font-size:.88rem;font-weight:600;margin:0 0 2px}
+.btns-sub{font-size:.8rem;color:var(--muted);margin:8px 0 0}
+.presets{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:14px;background:var(--eqbg)}
+.readout{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px;font-size:.88rem;margin-top:10px;font-variant-numeric:tabular-nums}
+.readout span{color:var(--muted)}
+.readout .wide{grid-column:1 / -1}
+#regime{font-weight:600;color:var(--ink)}
+.warn{color:var(--warn)}
+.codehead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+pre{background:var(--code-bg);color:var(--code-ink);padding:14px 16px;border-radius:10px;overflow:auto;font-size:.8rem;line-height:1.5;max-height:560px;margin:0}
+code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+.kbd{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88em;background:var(--eqbg);padding:1px 5px;border-radius:4px}
+.note{color:var(--muted);font-size:.9rem}
+.d1,.d2{position:relative;display:inline-block;line-height:1}
+.d1::after,.d2::before,.d2::after{content:"";position:absolute;top:-.16em;width:.09em;height:.09em;border-radius:50%;background:currentColor}
+.d1::after{left:52%}
+.d2::before{left:34%}
+.d2::after{left:62%}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Mecánica clásica · Problema 4</p>
+  <h1>Péndulo simple: del potencial U(θ) al método de Euler</h1>
+  <p class="lead">Se parte del potencial y de la energía, se llega a la ecuación de movimiento y se la integra numéricamente. La animación calcula todo en el navegador y compara la solución de Euler con una referencia precisa.</p>
+</header>
+
+<!-- ============ (a) y (b) ============ -->
+<section class="card">
+  <h2>1. Repaso de (a) y (b): potencial y tipos de movimiento</h2>
+  <p>El potencial está definido a menos de una constante. Elegimos el cero a la altura del punto de suspensión, de modo que</p>
+  <div class="eq"><i>U</i>(θ) = −<i>m g l</i> cos θ &nbsp; ⇒ &nbsp; <i>U</i><sub>m</sub> = −<i>m g l</i> en θ = 0 (equilibrio estable), &nbsp; <i>U</i><sub>M</sub> = +<i>m g l</i> en θ = ±π (equilibrio inestable)</div>
+  <p>La energía mecánica se conserva, <i>E</i><sub>0</sub> = <i>T</i> + <i>U</i> = ½<i>m l</i>² <span class="d1">θ</span>² − <i>m g l</i> cos θ, y de ahí sale la velocidad a partir del gráfico de <i>U</i>:</p>
+  <div class="eq"><span class="d1">θ</span>² = 2<i>E</i><sub>0</sub>/(<i>m l</i>²) + (2<i>g</i>/<i>l</i>) cos θ &nbsp; ⇒ &nbsp; <span class="d1">θ</span>(θ) = ± √( 2 [<i>E</i><sub>0</sub> − <i>U</i>(θ)] / (<i>m l</i>²) ) &nbsp; <small>(solo hay movimiento donde <i>E</i><sub>0</sub> ≥ <i>U</i>)</small></div>
+  <table>
+    <thead><tr><th>Caso</th><th>Movimiento</th><th>Cómo conseguirlo en la práctica</th></tr></thead>
+    <tbody>
+      <tr><td><b>Energía mínima</b><br><span class="m"><i>E</i><sub>m</sub> = <i>U</i><sub>m</sub> = −<i>m g l</i></span></td>
+          <td><span class="d1">θ</span>² = (2<i>g</i>/<i>l</i>)(cos θ − 1) ≥ 0 solo se cumple en θ = 0, así que θ ≡ 0 y <span class="d1">θ</span> ≡ 0 para todo <i>t</i>: equilibrio estable.</td>
+          <td>Dejar la masa en reposo en la vertical.</td></tr>
+      <tr><td><b><i>E</i><sub>1</sub> intermedia</b><br><span class="m"><i>U</i><sub>m</sub> &lt; <i>E</i><sub>1</sub> &lt; <i>U</i><sub>M</sub></span></td>
+          <td>Oscilación entre −θ<sub>R</sub> y +θ<sub>R</sub>. Por ejemplo con <i>E</i><sub>1</sub> = 0: <span class="d1">θ</span>² = (2<i>g</i>/<i>l</i>) cos θ, y los puntos de retorno (<span class="d1">θ</span> = 0) son θ<sub>R</sub> = ±π/2.</td>
+          <td>Apartar la masa un ángulo θ<sub>R</sub> &lt; π y soltarla sin impulso: <i>E</i><sub>1</sub> = −<i>m g l</i> cos θ<sub>R</sub>.</td></tr>
+      <tr><td><b><i>E</i><sub>2</sub> al borde</b><br><span class="m"><i>E</i><sub>2</sub> = <i>U</i><sub>M</sub> = <i>m g l</i></span></td>
+          <td><span class="d1">θ</span>² = (2<i>g</i>/<i>l</i>)(cos θ + 1): la velocidad se anula solo en θ = ±π. La masa se acerca al tope cada vez más despacio y tarda un tiempo infinito en llegar. Es un equilibrio inestable.</td>
+          <td>Desde θ = 0, lanzar con <span class="d1">θ</span><sub>0</sub> = 2√(<i>g</i>/<i>l</i>), es decir <i>v</i><sub>0</sub> = 2√(<i>g l</i>). La varilla rígida permite llegar hasta arriba.</td></tr>
+      <tr><td><b><i>E</i><sub>3</sub> mayor al borde</b><br><span class="m"><i>E</i><sub>3</sub> &gt; <i>U</i><sub>M</sub></span></td>
+          <td>Rotación. Por ejemplo con <i>E</i><sub>3</sub> = 2<i>m g l</i>: <span class="d1">θ</span>² = (2<i>g</i>/<i>l</i>)(cos θ + 2) &gt; 0 para todo θ, así que <span class="d1">θ</span> nunca se anula y la masa da vueltas siempre en el mismo sentido.</td>
+          <td>Desde θ = 0, lanzar con <i>v</i><sub>0</sub> &gt; 2√(<i>g l</i>). Para <i>E</i><sub>3</sub> = 2<i>m g l</i>: <span class="d1">θ</span><sub>0</sub> = √6 √(<i>g</i>/<i>l</i>).</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============ Euler ============ -->
+<section class="card">
+  <h2>2. Parte (c): el método de Euler</h2>
+  <p>Para amplitudes grandes ya no vale sen θ ≈ θ y la ecuación no tiene solución elemental:</p>
+  <div class="eq"><span class="d2">θ</span> = −(<i>g</i>/<i>l</i>) sen θ</div>
+  <ol>
+    <li><b>Bajar el orden.</b> Se define ω = <span class="d1">θ</span> y queda un sistema de primer orden:
+      <div class="eq"><span class="d1">θ</span> = ω &nbsp;&nbsp;&nbsp; ω̇ = −(<i>g</i>/<i>l</i>) sen θ</div></li>
+    <li><b>Un paso de Euler.</b> Se desarrolla en Taylor alrededor de <i>t<sub>n</sub></i>:
+      <div class="eq">θ(<i>t<sub>n</sub></i> + <i>h</i>) = θ<sub><i>n</i></sub> + <i>h</i> ω<sub><i>n</i></sub> + ½ <i>h</i>² <span class="d2">θ</span><sub><i>n</i></sub> + O(<i>h</i>³)</div>
+      Euler se queda con los dos primeros términos, y lo mismo para ω:
+      <div class="eq">θ<sub><i>n</i>+1</sub> = θ<sub><i>n</i></sub> + <i>h</i> ω<sub><i>n</i></sub><br>ω<sub><i>n</i>+1</sub> = ω<sub><i>n</i></sub> − <i>h</i> (<i>g</i>/<i>l</i>) sen θ<sub><i>n</i></sub></div></li>
+    <li><b>Error.</b> Lo que se descarta es ½ <i>h</i>² <span class="d2">θ</span><sub><i>n</i></sub>, así que el error de cada paso es O(<i>h</i>²). Para llegar de <i>t</i><sub>0</sub> a <i>t</i><sub>f</sub> hacen falta <i>N</i> = (<i>t</i><sub>f</sub> − <i>t</i><sub>0</sub>)/<i>h</i> pasos, y el error acumulado es del orden de <i>N</i> · <i>h</i>² = O(<i>h</i>).</li>
+    <li><b>Repetir.</b> Con (θ<sub>0</sub>, ω<sub>0</sub>) como condiciones iniciales se obtiene la sucesión (<i>t<sub>n</sub></i>, θ<sub><i>n</i></sub>, ω<sub><i>n</i></sub>) que se grafica.</li>
+  </ol>
+
+  <p><b>¿Por qué la energía crece en cada paso?</b> Cerca del equilibrio, <i>U</i> ≈ −<i>m g l</i> + ½<i>m g l</i> θ², y con ω<sub>0</sub>² = <i>g</i>/<i>l</i> la energía medida desde el fondo del pozo es <i>E</i> + <i>m g l</i> ≈ ½<i>m l</i>² (ω² + ω<sub>0</sub>² θ²). Aplicando un paso de Euler:</p>
+  <div class="eq">ω<sub>0</sub>² θ<sub><i>n</i>+1</sub>² + ω<sub><i>n</i>+1</sub>² = ω<sub>0</sub>² (θ<sub><i>n</i></sub> + <i>h</i> ω<sub><i>n</i></sub>)² + (ω<sub><i>n</i></sub> − <i>h</i> ω<sub>0</sub>² θ<sub><i>n</i></sub>)²<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= (1 + ω<sub>0</sub>² <i>h</i>²) (ω<sub>0</sub>² θ<sub><i>n</i></sub>² + ω<sub><i>n</i></sub>²) &nbsp; <small>(los términos cruzados ±2<i>h</i>ω<sub>0</sub>² θ<sub><i>n</i></sub> ω<sub><i>n</i></sub> se cancelan)</small></div>
+  <p>Es decir, (<i>E</i> + <i>m g l</i>)<sub><i>n</i>+1</sub> = (1 + ω<sub>0</sub>² <i>h</i>²) (<i>E</i> + <i>m g l</i>)<sub><i>n</i></sub>, con un factor siempre mayor que 1: <b>cada paso agrega energía</b>, por chico que sea <i>h</i>. En la animación se ve cómo sube la línea de <i>E</i> y, si cruza <i>U</i><sub>M</sub>, el péndulo deja de oscilar y empieza a girar. Eso es un artefacto del método y no física.</p>
+  <p class="note">Existen métodos mejores que no tienen este problema. Si quieren chusmear:
+    <a href="https://en.wikipedia.org/wiki/Semi-implicit_Euler_method" target="_blank" rel="noopener">Euler semi-implícito (Euler–Cromer)</a>,
+    <a href="https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods" target="_blank" rel="noopener">Runge–Kutta</a>,
+    <a href="https://en.wikipedia.org/wiki/Verlet_integration" target="_blank" rel="noopener">Verlet</a> y
+    <a href="https://en.wikipedia.org/wiki/Symplectic_integrator" target="_blank" rel="noopener">integradores simplécticos</a>.
+    En la animación, la línea punteada gris de referencia está calculada con Runge–Kutta de 4.º orden y paso fino.</p>
+</section>
+
+<!-- ============ Simulador ============ -->
+<section class="card">
+  <h2>3. Animación</h2>
+  <div class="sim">
+    <div>
+      <canvas id="cvP"></canvas>
+      <div class="readout">
+        <div><span>t = </span><b id="rt">0.00 s</b></div>
+        <div><span>θ = </span><b id="rth">0°</b></div>
+        <div><span><span class="d1">θ</span> = </span><b id="rom">0</b></div>
+        <div><span>E = </span><b id="re">0</b></div>
+        <div class="wide"><span>Caso inicial: </span><span id="regime"></span> <span id="regimeE"></span></div>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="presets">
+        <p class="btns-title">Elegí una energía: cada botón es un tipo de movimiento</p>
+        <div class="btns">
+          <button data-p="Em" title="θ₀ = 0, θ̇₀ = 0">E<sub>m</sub> = U<sub>m</sub></button>
+          <button data-p="E1" title="θ₀ = 90°, θ̇₀ = 0, E₁ = 0">U<sub>m</sub> &lt; E<sub>1</sub> &lt; U<sub>M</sub></button>
+          <button data-p="E2" title="θ₀ = 0, θ̇₀ = 2√(g/l), E₂ = mgl">E<sub>2</sub> = U<sub>M</sub></button>
+          <button data-p="E3" title="θ₀ = 0, θ̇₀ = √6 √(g/l), E₃ = 2mgl">E<sub>3</sub> &gt; U<sub>M</sub></button>
+        </div>
+        <p class="btns-sub">Amplitud pequeña o grande (para comparar θ(t))</p>
+        <div class="btns">
+          <button data-p="small" title="θ₀ = 10°, θ̇₀ = 0">Amplitud pequeña</button>
+          <button data-p="large" title="θ₀ = 150°, θ̇₀ = 0">Amplitud grande</button>
+        </div>
+      </div>
+      <div class="row"><label>Longitud <i>l</i>: <b id="vl">1.00</b> m &nbsp;<span class="note">(<i>g</i> = 9.81 m/s²)</span></label>
+        <input id="l" type="range" min="0.2" max="3" step="0.05" value="1"></div>
+      <div class="row"><label>Ángulo inicial θ₀: <b id="vth">90</b>°</label>
+        <input id="th0" type="range" min="0" max="180" step="1" value="90"></div>
+      <div class="row"><label>Velocidad angular inicial <span class="d1">θ</span>₀: <b id="vom">0.00</b> rad/s</label>
+        <input id="om0" type="range" min="-20" max="20" step="0.01" value="0"></div>
+      <div class="row"><label>Paso de Euler <i>h</i>: <b id="vh">0.001</b> s</label>
+        <input id="hi" type="range" min="0" max="7" step="1" value="1"></div>
+      <div class="row"><label>Velocidad de reproducción: <b id="vsp">1×</b></label>
+        <input id="sp" type="range" min="0" max="4" step="1" value="2"></div>
+      <div class="btns">
+        <button id="play" class="primary">Pausa</button>
+        <button id="reset">Reiniciar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="panel">
+      <h3>Energía potencial U(θ) y energía total E</h3>
+      <p class="lg"><i class="c-num"></i>U(θ) <i class="c-rose"></i>E actual <i class="c-ref t"></i>E inicial <i class="c-warn d"></i>U<sub>M</sub></p>
+      <canvas id="cvU" class="chart"></canvas>
+    </div>
+    <div class="panel">
+      <h3>Ángulo θ(t)</h3>
+      <p class="lg"><i class="c-num"></i>Euler <i class="c-ref d"></i>referencia <i class="c-warn t"></i>±π</p>
+      <canvas id="cvT" class="chart"></canvas>
+    </div>
+    <div class="panel">
+      <h3>Velocidad angular <span class="d1">θ</span>(t)</h3>
+      <p class="lg"><i class="c-num"></i>Euler <i class="c-ref d"></i>referencia</p>
+      <canvas id="cvW" class="chart"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Qué observar ============ -->
+<section class="card">
+  <h2>4. Qué observar</h2>
+  <ol>
+    <li><b>Los cuatro botones de energía.</b> En el gráfico de <i>U</i> y <i>E</i>, la línea horizontal de <i>E</i> muestra hasta dónde puede llegar la masa (los círculos son los puntos de retorno). En θ(t) y <span class="d1">θ</span>(t) se ve la oscilación (<i>E</i><sub>1</sub>), el movimiento límite (<i>E</i><sub>2</sub>) y la rotación (<i>E</i><sub>3</sub>: θ crece sin parar y <span class="d1">θ</span> nunca se anula).</li>
+    <li><b>Euler contra la referencia.</b> La curva sólida se va separando de la punteada y la línea de <i>E</i> sube. Con <i>h</i> más chico pasa más tarde y con <i>h</i> más grande pasa antes. Con <i>E</i><sub>2</sub> el péndulo de Euler termina girando aunque la energía inicial sea justo <i>U</i><sub>M</sub>. Incluso la referencia termina cayendo para un lado: llegar al tope lleva un tiempo infinito y el error numérico más chico decide si el péndulo pasa de largo o vuelve.</li>
+    <li><b>Amplitud pequeña y grande.</b> Con amplitud pequeña θ(t) es casi una senoide. Con amplitud grande la curva se achata y el período es más largo.</li>
+  </ol>
+</section>
+
+<!-- ============ Python ============ -->
+<section class="card">
+  <h2>5. Para implementarlo en Python</h2>
+  <p>Script completo (NumPy, SciPy y Matplotlib). Integra con Euler, compara con una referencia de alta precisión (<span class="kbd">solve_ivp</span>) y grafica <i>U</i>(θ) con la energía, θ(<i>t</i>) y <span class="d1">θ</span>(<i>t</i>). Para ver cómo cambia el resultado, probar distintos valores de <span class="kbd">step</span> en <span class="kbd">CONFIG</span>.</p>
+  <div class="codehead">
+    <span class="note">pendulum_euler.py</span>
+    <button id="copy" class="primary">Copiar código</button>
+  </div>
+<pre><code id="py">"""Simple pendulum integrated with Euler's method."""
+
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.integrate import solve_ivp
+
+G = 9.81  # gravity [m/s^2]
+LENGTH = 1.0  # rod length [m]
+
+
+def euler(
+    theta0: float,
+    omega0: float,
+    step: float,
+    t_total: float,
+) -&gt; tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Integrates the pendulum with Euler's method.
+
+    The equation `theta'' = -(g/l) sin(theta)` is rewritten as the
+    first-order system `theta' = omega`, `omega' = -(g/l) sin(theta)`.
+
+    Parameters
+    ----------
+    theta0 : float
+        Initial angle [rad].
+    omega0 : float
+        Initial angular velocity [rad/s].
+    step : float
+        Time step `h` [s].
+    t_total : float
+        Total simulated time [s].
+
+    Returns
+    -------
+    tuple[np.ndarray, np.ndarray, np.ndarray]
+        Time, angle and angular velocity arrays.
+    """
+    n_steps = int(round(t_total / step))
+    time = step * np.arange(n_steps + 1)
+    theta = np.empty(n_steps + 1)
+    omega = np.empty(n_steps + 1)
+    theta[0], omega[0] = theta0, omega0
+    for i in range(n_steps):
+        theta[i + 1] = theta[i] + step * omega[i]
+        omega[i + 1] = omega[i] - step * G / LENGTH * np.sin(theta[i])
+    return time, theta, omega
+
+
+def potential(theta: np.ndarray) -&gt; np.ndarray:
+    """
+    Potential energy in units of `m g l`.
+
+    Parameters
+    ----------
+    theta : np.ndarray
+        Angle [rad].
+
+    Returns
+    -------
+    np.ndarray
+        `U / (m g l) = -cos(theta)`, so `U_m = -1` and `U_M = 1`.
+    """
+    return -np.cos(theta)
+
+
+def energy(theta: np.ndarray, omega: np.ndarray) -&gt; np.ndarray:
+    """
+    Mechanical energy in units of `m g l`.
+
+    Parameters
+    ----------
+    theta : np.ndarray
+        Angle [rad].
+    omega : np.ndarray
+        Angular velocity [rad/s].
+
+    Returns
+    -------
+    np.ndarray
+        `E / (m g l) = 0.5 * omega**2 * l / g - cos(theta)`.
+    """
+    return 0.5 * omega**2 * LENGTH / G + potential(theta)
+
+
+def solve_reference(
+    theta0: float,
+    omega0: float,
+    time: np.ndarray,
+) -&gt; tuple[np.ndarray, np.ndarray]:
+    """
+    High-accuracy solution (adaptive Runge-Kutta) used as reference.
+
+    Parameters
+    ----------
+    theta0 : float
+        Initial angle [rad].
+    omega0 : float
+        Initial angular velocity [rad/s].
+    time : np.ndarray
+        Times at which the solution is evaluated [s].
+
+    Returns
+    -------
+    tuple[np.ndarray, np.ndarray]
+        Angle and angular velocity at `time`.
+    """
+    solution = solve_ivp(
+        lambda _, y: [y[1], -G / LENGTH * np.sin(y[0])],
+        (time[0], time[-1]),
+        [theta0, omega0],
+        t_eval=time,
+        rtol=1e-10,
+        atol=1e-12,
+    )
+    return solution.y[0], solution.y[1]
+
+
+def plot_solution(
+    time: np.ndarray,
+    theta: np.ndarray,
+    omega: np.ndarray,
+    reference: tuple[np.ndarray, np.ndarray],
+) -&gt; None:
+    """
+    Plots U(theta) with the energy, theta(t) and omega(t).
+
+    Parameters
+    ----------
+    time : np.ndarray
+        Time samples [s].
+    theta : np.ndarray
+        Euler angle [rad].
+    omega : np.ndarray
+        Euler angular velocity [rad/s].
+    reference : tuple[np.ndarray, np.ndarray]
+        Reference angle and angular velocity.
+    """
+    theta_ref, omega_ref = reference
+    _, (ax_energy, ax_theta, ax_omega) = plt.subplots(1, 3, figsize=(14, 4))
+
+    grid = np.linspace(-2 * np.pi, 2 * np.pi, 400)
+    euler_energy = energy(theta, omega)
+    ax_energy.plot(grid, potential(grid), label="U(theta)")
+    ax_energy.axhline(1.0, color="r", linestyle=":", label="U_M")
+    ax_energy.axhline(
+        euler_energy[0], color="gray", linestyle="--", label="E initial"
+    )
+    ax_energy.axhline(
+        euler_energy[-1], color="k", linestyle="-.", label="E final (Euler)"
+    )
+    ax_energy.set(xlabel="theta [rad]", ylabel="U, E  [m g l]")
+
+    ax_theta.plot(time, theta, label="Euler")
+    ax_theta.plot(time, theta_ref, "--", label="reference")
+    ax_theta.set(xlabel="t [s]", ylabel="theta [rad]")
+
+    ax_omega.plot(time, omega, label="Euler")
+    ax_omega.plot(time, omega_ref, "--", label="reference")
+    ax_omega.set(xlabel="t [s]", ylabel="omega [rad/s]")
+
+    for ax in (ax_energy, ax_theta, ax_omega):
+        ax.legend()
+    plt.tight_layout()
+
+
+def main(
+    theta0_deg: float,
+    omega0: float,
+    step: float,
+    t_total: float,
+) -&gt; None:
+    """
+    Runs Euler's method for the pendulum and plots the results.
+
+    Parameters
+    ----------
+    theta0_deg : float
+        Initial angle [deg].
+    omega0 : float
+        Initial angular velocity [rad/s].
+    step : float
+        Euler time step [s].
+    t_total : float
+        Total simulated time [s].
+    """
+    theta0 = np.radians(theta0_deg)
+    time, theta, omega = euler(theta0, omega0, step, t_total)
+    reference = solve_reference(theta0, omega0, time)
+    plot_solution(time, theta, omega, reference)
+    plt.show()
+
+
+if __name__ == "__main__":
+    CONFIG = {
+        "theta0_deg": 90.0,
+        "omega0": 0.0,
+        "step": 0.01,
+        "t_total": 30.0,
+    }
+    main(**CONFIG)
+</code></pre>
+</section>
+
+</div>
+
+<script>
+(function () {
+'use strict';
+
+/* ---------- constantes y utilidades ---------- */
+const G = 9.81, PI = Math.PI, TAU = 2 * PI;
+const $ = id => document.getElementById(id);
+const HS = [0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1];
+const SPEEDS = [0.25, 0.5, 1, 2, 4];
+const REF_H = 0.002;
+/* [θ₀ en grados, θ̇₀ en unidades de √(g/l)] */
+const PRESETS = { Em: [0, 0], E1: [90, 0], E2: [0, 2], E3: [0, Math.sqrt(6)], small: [10, 0], large: [150, 0] };
+
+const P = { l: 1, th0: PI / 2, om0: 0, h: 0.001, speed: 1 };
+let S, R, hist, E0, simT = 0, lastPush = 0, running = true, activePreset = 'E1';
+
+let C = {};
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement);
+  const g = n => cs.getPropertyValue(n).trim();
+  C = { ink: g('--ink'), muted: g('--muted'), line: g('--line'), grid: g('--grid'), accent: g('--accent'),
+        ref: g('--ref'), warn: g('--warn'), rose: g('--rose'), card: g('--card') };
+}
+readTheme();
+if (window.matchMedia) {
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  if (mq.addEventListener) mq.addEventListener('change', readTheme);
+}
+
+const fmt3 = x => (Math.abs(x) < 5e-4 ? 0 : x).toFixed(3).replace('-', '−');
+const w2 = () => G / P.l;
+const wrapPi = x => ((x + PI) % TAU + TAU) % TAU - PI;
+const wrap2Pi = x => ((x + TAU) % (2 * TAU) + 2 * TAU) % (2 * TAU) - TAU;
+const energyOf = (th, om) => 0.5 * om * om / w2() - Math.cos(th);   // E/(m g l), con U = -m g l cos θ
+const energy = s => energyOf(s.th, s.om);
+
+/* ---------- integradores ---------- */
+function step(s, h, k) {            // Euler explícito
+  const a = -k * Math.sin(s.th), w = s.om;
+  s.th += h * w;
+  s.om += h * a;
+}
+function stepRK4(s, h, k) {         // solo para la referencia
+  const th = s.th, om = s.om;
+  const a1 = om,              b1 = -k * Math.sin(th);
+  const a2 = om + h / 2 * b1, b2 = -k * Math.sin(th + h / 2 * a1);
+  const a3 = om + h / 2 * b2, b3 = -k * Math.sin(th + h / 2 * a2);
+  const a4 = om + h * b3,     b4 = -k * Math.sin(th + h * a3);
+  s.th = th + h / 6 * (a1 + 2 * a2 + 2 * a3 + a4);
+  s.om = om + h / 6 * (b1 + 2 * b2 + 2 * b3 + b4);
+}
+
+/* ---------- estado de la simulación ---------- */
+function push() {
+  hist.push({ t: S.t, th: S.th, om: S.om, e: energy(S), rt: R.th, ro: R.om });
+  lastPush = S.t;
+  if (hist.length > 20000) hist.splice(0, 5000);
+}
+function resetSim() {
+  S = { t: 0, th: P.th0, om: P.om0 };
+  R = { t: 0, th: P.th0, om: P.om0 };
+  E0 = energy(S);
+  hist = []; simT = 0;
+  push();
+  regime();
+}
+function advance(dt) {
+  simT += dt;
+  const k = w2(), n = Math.max(1, Math.ceil(P.h / REF_H)), hr = P.h / n;
+  let cnt = 0;
+  while (S.t + P.h <= simT + 1e-12 && cnt < 30000) {
+    step(S, P.h, k);
+    S.t += P.h;
+    for (let i = 0; i < n; i++) stepRK4(R, hr, k);
+    R.t = S.t;
+    if (S.t - lastPush >= 0.01 - 1e-9) push();
+    cnt++;
+  }
+}
+function regime() {
+  let txt;
+  if (Math.abs(E0 + 1) < 1e-6) txt = 'E = U_m: equilibrio estable';
+  else if (Math.abs(E0 - 1) < 2e-3) txt = 'E = U_M: movimiento límite';
+  else txt = E0 < 1 ? 'U_m < E < U_M: oscilación' : 'E > U_M: rotación';
+  $('regime').textContent = txt;
+  $('regimeE').textContent = '(E₀ = ' + fmt3(E0) + ' mgl)';
+}
+
+/* ---------- ticks y ejes ---------- */
+function niceStep(range, n) {
+  if (!(range > 0)) return 1;
+  const raw = range / n, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+  return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p;
+}
+function nf(v) {
+  if (Math.abs(v) < 1e-12) v = 0;
+  const s = (Math.abs(v) >= 1000 || (v !== 0 && Math.abs(v) < 0.01)) ? v.toExponential(0) : String(+v.toFixed(3));
+  return s.replace('-', '−');
+}
+function ticks(a, b, n) {
+  const st = niceStep(b - a, n), out = [];
+  for (let v = Math.ceil(a / st - 1e-9) * st; v <= b + st * 1e-9; v += st) out.push([v, nf(v)]);
+  return out;
+}
+function piLab(num) {
+  if (num === 0) return '0';
+  const s = num < 0 ? '−' : '', n = Math.abs(num);
+  return s + (n === 1 ? '' : String(n)) + 'π';
+}
+function piTicks(a, b) {
+  const out = [];
+  for (let k = Math.ceil(a / PI - 1e-9); k <= Math.floor(b / PI + 1e-9); k++) out.push([k * PI, piLab(k)]);
+  return out;
+}
+
+function mk(id) {
+  const el = $(id), ctx = el.getContext('2d'), o = { el, ctx, W: 0, H: 0 };
+  o.fit = function () {
+    const r = el.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+    o.W = r.width; o.H = r.height;
+    el.width = Math.max(1, Math.round(r.width * d));
+    el.height = Math.max(1, Math.round(r.height * d));
+    ctx.setTransform(d, 0, 0, d, 0, 0);
+  };
+  o.fit();
+  return o;
+}
+const cvP = mk('cvP'), cvU = mk('cvU'), cvT = mk('cvT'), cvW = mk('cvW');
+
+function axes(cv, xr, yr, o) {
+  o = o || {};
+  const ctx = cv.ctx, W = cv.W, H = cv.H, m = { l: 48, r: 14, t: 12, b: 30 };
+  const pw = W - m.l - m.r, ph = H - m.t - m.b;
+  ctx.clearRect(0, 0, W, H);
+  const X = x => m.l + (x - xr[0]) / (xr[1] - xr[0]) * pw;
+  const Y = y => m.t + ph - (y - yr[0]) / (yr[1] - yr[0]) * ph;
+  const xt = o.xticks || ticks(xr[0], xr[1], Math.max(3, Math.floor(pw / 90)));
+  const yt = o.yticks || ticks(yr[0], yr[1], Math.max(3, Math.floor(ph / 45)));
+  ctx.font = '11px system-ui, sans-serif';
+  ctx.lineWidth = 1; ctx.setLineDash([]);
+  ctx.strokeStyle = C.grid; ctx.fillStyle = C.muted;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (const [v, lab] of xt) {
+    const x = X(v);
+    ctx.beginPath(); ctx.moveTo(x, m.t); ctx.lineTo(x, m.t + ph); ctx.stroke();
+    ctx.fillText(lab, x, m.t + ph + 6);
+  }
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for (const [v, lab] of yt) {
+    const y = Y(v);
+    ctx.beginPath(); ctx.moveTo(m.l, y); ctx.lineTo(m.l + pw, y); ctx.stroke();
+    ctx.fillText(lab, m.l - 6, y);
+  }
+  ctx.strokeStyle = C.line;
+  ctx.strokeRect(m.l + 0.5, m.t + 0.5, pw, ph);
+  ctx.fillStyle = C.muted;
+  if (o.xlabel) { ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillText(o.xlabel, m.l + pw, H - 1); }
+  if (o.ylabel) { ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText(o.ylabel, m.l + 6, m.t + 3); }
+  return {
+    X, Y, m, pw, ph,
+    clip() { ctx.save(); ctx.beginPath(); ctx.rect(m.l, m.t, pw, ph); ctx.clip(); },
+    unclip() { ctx.restore(); }
+  };
+}
+function hline(ctx, ax, y, color, dash, w) {
+  ctx.strokeStyle = color; ctx.lineWidth = w || 1.4; ctx.setLineDash(dash || []);
+  ctx.beginPath(); ctx.moveTo(ax.m.l, ax.Y(y)); ctx.lineTo(ax.m.l + ax.pw, ax.Y(y)); ctx.stroke();
+  ctx.setLineDash([]);
+}
+function dot(ctx, x, y, r, fill, stroke) {
+  ctx.beginPath(); ctx.arc(x, y, r, 0, TAU);
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1.6; ctx.stroke(); }
+}
+function tline(ctx, ax, key, t0, color, w, dash) {
+  ctx.strokeStyle = color; ctx.lineWidth = w; ctx.setLineDash(dash || []);
+  ctx.beginPath();
+  let started = false;
+  for (let i = 0; i < hist.length; i++) {
+    const h = hist[i];
+    if (h.t < t0) continue;
+    const x = ax.X(h.t), y = ax.Y(h[key]);
+    if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+  }
+  ctx.stroke(); ctx.setLineDash([]);
+}
+
+/* ---------- dibujo: péndulo ---------- */
+function drawPend() {
+  const cv = cvP, ctx = cv.ctx, W = cv.W, H = cv.H;
+  ctx.clearRect(0, 0, W, H);
+  const px = W / 2, py = H / 2;
+  const L = Math.max(40, Math.min(W / 2 - 30, H / 2 - 44));
+  const pos = th => [px + L * Math.sin(th), py + L * Math.cos(th)];
+
+  ctx.lineWidth = 1; ctx.strokeStyle = C.grid;
+  ctx.beginPath(); ctx.arc(px, py, L, 0, TAU); ctx.stroke();
+  ctx.setLineDash([4, 4]); ctx.strokeStyle = C.line;
+  ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, py + L + 14); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.strokeStyle = C.muted; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(px - 42, py); ctx.lineTo(px + 42, py); ctx.stroke();
+
+  const nTr = Math.min(hist.length, 160), i0 = hist.length - nTr;
+  for (let i = i0; i < hist.length; i++) {
+    const [x, y] = pos(hist[i].th);
+    ctx.globalAlpha = 0.35 * (i - i0) / nTr;
+    dot(ctx, x, y, 2.2, C.accent);
+  }
+  ctx.globalAlpha = 1;
+
+  const [rx, ry] = pos(R.th);
+  ctx.setLineDash([5, 4]); ctx.strokeStyle = C.ref; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(rx, ry); ctx.stroke();
+  ctx.setLineDash([]);
+  dot(ctx, rx, ry, 13, null, C.ref);
+
+  const [bx, by] = pos(S.th);
+  ctx.strokeStyle = C.ink; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(bx, by); ctx.stroke();
+  dot(ctx, bx, by, 13, C.accent, C.card);
+  dot(ctx, px, py, 4, C.ink);
+
+  const thw = wrapPi(S.th), r = Math.min(46, L * 0.3);
+  ctx.strokeStyle = C.rose; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(px, py, r, PI / 2, PI / 2 - thw, thw > 0); ctx.stroke();
+  const am = PI / 2 - thw / 2;
+  ctx.fillStyle = C.rose; ctx.font = 'italic 14px Georgia, serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('θ', px + (r + 13) * Math.cos(am), py + (r + 13) * Math.sin(am));
+
+  ctx.font = '11px system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = C.muted;
+  dot(ctx, 16, 16, 5, C.accent);
+  ctx.textBaseline = 'middle'; ctx.fillText('método de Euler', 28, 16);
+  dot(ctx, 16, 34, 5, null, C.ref);
+  ctx.fillText('referencia (Runge–Kutta, paso fino)', 28, 34);
+}
+
+/* ---------- dibujo: U(θ) y E ---------- */
+function drawU() {
+  const cv = cvU, ctx = cv.ctx, e = energy(S);
+  const top = Math.min(6, Math.max(1.6, Math.max(E0, e) + 0.35));
+  const yt = [];
+  for (let v = -1; v <= Math.floor(top); v++) yt.push([v, v === 0 ? '0' : v === 1 ? 'mgl' : v === -1 ? '−mgl' : v + 'mgl']);
+  const ax = axes(cv, [-TAU, TAU], [-1.3, top], { xticks: piTicks(-TAU, TAU), yticks: yt, xlabel: 'θ', ylabel: 'U, E' });
+  ax.clip();
+  hline(ctx, ax, 1, C.warn, [6, 4]);
+  ctx.strokeStyle = C.accent; ctx.lineWidth = 2.4; ctx.beginPath();
+  const N = 280;
+  for (let i = 0; i <= N; i++) {
+    const x = -TAU + 2 * TAU * i / N, y = -Math.cos(x);
+    if (i) ctx.lineTo(ax.X(x), ax.Y(y)); else ctx.moveTo(ax.X(x), ax.Y(y));
+  }
+  ctx.stroke();
+  hline(ctx, ax, E0, C.ref, [2, 4]);
+  hline(ctx, ax, e, C.rose, [], 1.8);
+  if (E0 > -1 + 1e-6 && E0 < 1 - 1e-6) {
+    const tt = Math.acos(-E0);
+    for (let k = -1; k <= 1; k++) for (const sg of [-1, 1]) {
+      const x = sg * tt + k * TAU;
+      if (x >= -TAU && x <= TAU) dot(ctx, ax.X(x), ax.Y(E0), 4, C.card, C.rose);
+    }
+  }
+  const xs = wrap2Pi(S.th), v = -Math.cos(S.th);
+  ctx.strokeStyle = C.rose; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.6;
+  ctx.beginPath(); ctx.moveTo(ax.X(xs), ax.Y(v)); ctx.lineTo(ax.X(xs), ax.Y(e)); ctx.stroke();
+  ctx.globalAlpha = 1;
+  dot(ctx, ax.X(xs), ax.Y(v), 5.5, C.accent, C.card);
+  ctx.font = '11px system-ui, sans-serif'; ctx.textBaseline = 'bottom'; ctx.textAlign = 'center';
+  ctx.fillStyle = C.warn; ctx.fillText('U_M = mgl  (θ = ±π)', ax.X(0), ax.Y(1) - 3);
+  ctx.fillStyle = C.accent; ctx.textBaseline = 'middle'; ctx.fillText('U_m = −mgl', ax.X(0), ax.Y(-1.15));
+  ctx.fillStyle = C.rose; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+  ctx.fillText('E', ax.X(TAU) - 5, ax.Y(e) - 3);
+  ax.unclip();
+}
+
+/* ---------- dibujo: series temporales ---------- */
+function drawSeries(cv, key, rkey, ylabel, withPi) {
+  const ctx = cv.ctx, Wd = 15, t0 = Math.max(0, S.t - Wd), t1 = Math.max(Wd, S.t);
+  let lo = 0, hi = 0;
+  for (let i = 0; i < hist.length; i++) {
+    const h = hist[i];
+    if (h.t < t0) continue;
+    lo = Math.min(lo, h[key], h[rkey]); hi = Math.max(hi, h[key], h[rkey]);
+  }
+  if (withPi) { lo = Math.min(lo, -PI * 1.05); hi = Math.max(hi, PI * 1.05); }
+  const pad = (hi - lo) * 0.08 || 1;
+  const ax = axes(cv, [t0, t1], [lo - pad, hi + pad], { xlabel: 't [s]', ylabel });
+  ax.clip();
+  if (withPi) {
+    hline(ctx, ax, PI, C.warn, [2, 4]); hline(ctx, ax, -PI, C.warn, [2, 4]);
+    ctx.fillStyle = C.warn; ctx.font = '11px system-ui, sans-serif';
+    ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+    ctx.fillText('π', ax.m.l + ax.pw - 4, ax.Y(PI) - 2);
+    ctx.textBaseline = 'top'; ctx.fillText('−π', ax.m.l + ax.pw - 4, ax.Y(-PI) + 2);
+  }
+  hline(ctx, ax, 0, C.line, [], 1);
+  tline(ctx, ax, rkey, t0, C.ref, 1.8, [6, 4]);
+  tline(ctx, ax, key, t0, C.accent, 2);
+  dot(ctx, ax.X(S.t), ax.Y(S[key]), 4.5, C.accent, C.card);
+  ax.unclip();
+}
+
+/* ---------- lectura y UI ---------- */
+function updateReadout() {
+  $('rt').textContent = S.t.toFixed(2) + ' s';
+  $('rth').textContent = (wrapPi(S.th) * 180 / PI).toFixed(1) + '°';
+  $('rom').textContent = S.om.toFixed(2) + ' rad/s';
+  const ev = energy(S);
+  $('re').textContent = isFinite(ev) ? fmt3(ev) + ' mgl' : '∞';
+  $('re').className = ev - E0 > 0.02 ? 'warn' : '';
+}
+function syncUI() {
+  $('vl').textContent = P.l.toFixed(2); $('l').value = P.l;
+  $('vth').textContent = Math.round(P.th0 * 180 / PI); $('th0').value = Math.round(P.th0 * 180 / PI);
+  $('vom').textContent = P.om0.toFixed(2); $('om0').value = P.om0;
+  $('vh').textContent = String(P.h); $('hi').value = HS.indexOf(P.h);
+  $('vsp').textContent = P.speed + '×'; $('sp').value = SPEEDS.indexOf(P.speed);
+  $('play').textContent = running ? 'Pausa' : 'Reanudar';
+  document.querySelectorAll('[data-p]').forEach(b => b.classList.toggle('on', b.dataset.p === activePreset));
+}
+function applyPreset(name) {
+  const [deg, mult] = PRESETS[name];
+  activePreset = name;
+  P.th0 = deg * PI / 180;
+  P.om0 = mult * Math.sqrt(w2());
+  syncUI(); resetSim();
+}
+function bind() {
+  document.querySelectorAll('[data-p]').forEach(b => { b.onclick = () => applyPreset(b.dataset.p); });
+  $('l').oninput = e => {
+    P.l = +e.target.value;
+    if (activePreset) applyPreset(activePreset); else { syncUI(); resetSim(); }
+  };
+  $('th0').oninput = e => { activePreset = null; P.th0 = +e.target.value * PI / 180; syncUI(); resetSim(); };
+  $('om0').oninput = e => { activePreset = null; P.om0 = +e.target.value; syncUI(); resetSim(); };
+  $('hi').oninput = e => { P.h = HS[+e.target.value]; syncUI(); resetSim(); };
+  $('sp').oninput = e => { P.speed = SPEEDS[+e.target.value]; syncUI(); };
+  $('play').onclick = () => { running = !running; syncUI(); };
+  $('reset').onclick = () => resetSim();
+  $('copy').onclick = async () => {
+    const txt = $('py').textContent, btn = $('copy');
+    try { await navigator.clipboard.writeText(txt); }
+    catch (err) {
+      const ta = document.createElement('textarea');
+      ta.value = txt; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch (e2) {}
+      ta.remove();
+    }
+    btn.textContent = '¡Copiado!';
+    setTimeout(() => { btn.textContent = 'Copiar código'; }, 1600);
+  };
+  window.addEventListener('resize', () => [cvP, cvU, cvT, cvW].forEach(c => c.fit()));
+}
+
+function drawAll() {
+  drawPend(); drawU();
+  drawSeries(cvT, 'th', 'rt', 'θ [rad]', true);
+  drawSeries(cvW, 'om', 'ro', 'θ̇ [rad/s]', false);
+}
+
+let last = null;
+function loop(ts) {
+  if (last === null) last = ts;
+  const dt = Math.min(0.1, (ts - last) / 1000);
+  last = ts;
+  if (running) advance(dt * P.speed);
+  updateReadout();
+  drawAll();
+  requestAnimationFrame(loop);
+}
+
+bind();
+applyPreset(activePreset);
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
